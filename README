@@ -1,0 +1,5 @@
+y86-asm
+-------
+
+An assembler and linker for the y86_64 instruction set, as described in
+"Computer Systems" by Randal E. Bryant and David R. O'Hallaron.
