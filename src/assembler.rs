@@ -35,6 +35,7 @@ pub enum Error {
     BadRegister(String),
     BadInstruction(String),
     BadInt(String, u8),
+    IncompleteStatement,
     IoFailed(io::Error),
 }
 
@@ -52,6 +53,10 @@ impl AsmUnit {
                     builder.instruct(token)?;
                 }
             }
+
+            if builder.state() != &State::Ready {
+                return Err(Error::IncompleteStatement);
+            }
         }
 
         Ok(builder.unit())
@@ -67,7 +72,7 @@ enum Instruction {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 enum Register {
     Rax = 0,
     Rcx,
@@ -98,6 +103,7 @@ struct Builder {
 }
 
 /// An enumeration of all states the parser may be in.
+#[derive(PartialEq)]
 enum State {
     Ready,
     RrMovq(Option<Register>, Option<Register>),
@@ -126,6 +132,10 @@ impl Builder {
 
     pub fn unit(self) -> AsmUnit {
         self.inner
+    }
+
+    pub fn state(&'_ self) -> &'_ State {
+        &self.state
     }
 }
 
@@ -248,6 +258,7 @@ impl std::fmt::Display for Error {
                 Self::BadInstruction(s) => format!("Expected an instruction, but got `{}`.", s),
                 Self::BadInt(got, base) =>
                     format!("Expected integer with base {}, but got `{}`.", base, got),
+                Self::IncompleteStatement => "Statement is incomplete.".to_string(),
 
                 Self::IoFailed(e) => format!("Couldn't perform necessary IO ({})", e),
             }
