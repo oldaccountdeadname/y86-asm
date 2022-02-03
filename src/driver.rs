@@ -14,8 +14,12 @@ impl RunConf {
     pub fn make(self) -> i32 {
         let _asm = match self.assemble() {
             Ok(k) => k,
-            Err(e) => {
-                eprintln!("Error occured while assembling: {}", e);
+            Err(errors) => {
+                for e in &errors {
+                    eprintln!("Error occured while assembling: {}", e);
+                }
+
+                eprintln!("Aborted assembly due to {} errors.", errors.len());
                 return 1;
             }
         };

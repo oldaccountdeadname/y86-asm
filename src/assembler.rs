@@ -24,7 +24,7 @@ use std::str::FromStr;
 
 use crate::util::MaybeLined;
 
-pub type Result<T> = std::result::Result<T, MaybeLined<Error>>;
+pub type Result<T> = std::result::Result<T, Vec<MaybeLined<Error>>>;
 
 /// This is analogous to a single assembly file. It stores a symbol table of
 /// labels and their positions within self, and an in-memory byte array of the
@@ -45,18 +45,24 @@ pub enum Error {
 
 impl AsmUnit {
     pub fn read_asm(path: &'_ str) -> Result<Self> {
-        let file = fs::File::open(path)
-            .map_err(|x| MaybeLined::no_line(Error::IoFailed(x)))?;
+        let file = match fs::File::open(path) {
+            Ok(f) => f,
+            Err(x) => {
+                return Err(vec![MaybeLined::no_line(Error::IoFailed(x))]);
+            },
+        };
 
         let file = io::BufReader::new(file);
 
         let mut builder = Builder::empty();
+        let mut errors = Vec::new();
 
         for (line_no, line) in file.lines().enumerate() {
             let line = match line {
                 Ok(l) => l,
                 Err(x) => {
-                    return Err(MaybeLined::no_line(Error::IoFailed(x)));
+                    errors.push(MaybeLined::no_line(Error::IoFailed(x)));
+                    continue;
                 },
             };
 
@@ -64,19 +70,27 @@ impl AsmUnit {
                 // we want to allow separating instructions with semicolons
                 for token in word.split(';') {
                     if let Err(e) = builder.instruct(token) {
-                        return Err(MaybeLined::new(line_no + 1, e));
+                        errors.push(MaybeLined::new(line_no + 1, e));
+                        builder.ready();
+                        continue;
                     }
                 }
             }
 
             if builder.state() != &State::Ready {
-                return Err(MaybeLined::new(
+                builder.ready();
+                errors.push(MaybeLined::new(
                     line_no + 1, Error::IncompleteStatement
                 ));
+                continue;
             }
         }
 
-        Ok(builder.unit())
+        if errors.len() == 0 {
+            Ok(builder.unit())
+        } else {
+            Err(errors)
+        }
     }
 }
 
@@ -150,6 +164,11 @@ impl Builder {
     pub fn unit(self) -> AsmUnit {
         self.inner
     }
+
+    pub fn ready(&mut self) {
+        self.state = State::Ready;
+    }
+
 
     pub fn state(&'_ self) -> &'_ State {
         &self.state
