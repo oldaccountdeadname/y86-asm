@@ -30,8 +30,16 @@ pub struct AsmUnit {
     pub asm: Vec<u8>,
 }
 
+#[derive(Debug)]
+pub enum Error {
+    BadRegister(String),
+    BadInstruction(String),
+    BadInt(String, u8),
+    IoFailed(io::Error),
+}
+
 impl AsmUnit {
-    pub fn read_asm(path: &'_ str) -> Result<Self, io::Error> {
+    pub fn read_asm(path: &'_ str) -> Result<Self, Error> {
         let file = fs::File::open(path)?;
         let file = io::BufReader::new(file);
 
@@ -41,7 +49,7 @@ impl AsmUnit {
             for word in line?.split_whitespace() {
                 // we want to allow separating instructions with semicolons
                 for token in word.split(';') {
-                    builder.instruct(token);
+                    builder.instruct(token)?;
                 }
             }
         }
@@ -107,11 +115,13 @@ impl Builder {
         }
     }
 
-    pub fn instruct(&mut self, word: &'_ str) {
-        if let Some(ins) = self.state.next(word) {
+    pub fn instruct(&mut self, word: &'_ str) -> Result<(), Error> {
+        if let Some(ins) = self.state.next(word)? {
             let bytes: Vec<u8> = ins.into();
             self.inner.asm.extend(bytes);
         }
+
+        Ok(())
     }
 
     pub fn unit(self) -> AsmUnit {
@@ -120,46 +130,53 @@ impl Builder {
 }
 
 impl State {
-    pub fn next(&mut self, word: &'_ str) -> Option<Instruction> {
+    pub fn next(&mut self, word: &'_ str) -> Result<Option<Instruction>, Error> {
         match self {
             Self::Ready => match word {
-                "halt" => Some(Instruction::Halt),
-                "nop" => Some(Instruction::Nop),
-                "ret" => Some(Instruction::Ret),
+                "halt" => Ok(Some(Instruction::Halt)),
+                "nop" => Ok(Some(Instruction::Nop)),
+                "ret" => Ok(Some(Instruction::Ret)),
                 "rrmovq" => {
                     *self = Self::RrMovq(None, None);
-                    None
+                    Ok(None)
                 }
                 "irmovq" => {
                     *self = Self::IrMovq(None, None);
-                    None
+                    Ok(None)
                 }
-                _ => todo!(),
+                w => Err(Error::BadInstruction(w.to_string())),
             },
             Self::RrMovq(None, None) => {
                 let without_comma = &word[..(word.len() - 1)];
-                *self = Self::RrMovq(Some(Register::from_symbolic(without_comma)), None);
+                let register = Register::from_symbolic(without_comma)?;
 
-                None
+                *self = Self::RrMovq(Some(register), None);
+
+                Ok(None)
             }
             Self::RrMovq(Some(x), None) => {
-                let ins = Instruction::RrMovq(*x, Register::from_symbolic(word));
+                let register = Register::from_symbolic(word)?;
+                let ins = Instruction::RrMovq(*x, register);
                 *self = Self::Ready;
-                Some(ins)
+                Ok(Some(ins))
             }
             Self::IrMovq(None, None) => {
                 let without_comma = &word[..(word.len() - 1)];
                 *self = Self::IrMovq(
-                    Some(u64::from_str(without_comma).expect("base 10 number")),
+                    Some(
+                        u64::from_str(without_comma)
+                            .map_err(|_| Error::BadInt(word.to_string(), 10))?,
+                    ),
                     None,
                 );
 
-                None
+                Ok(None)
             }
             Self::IrMovq(Some(i), None) => {
-                let ins = Instruction::IrMovq(*i, Register::from_symbolic(word));
+                let register = Register::from_symbolic(word)?;
+                let ins = Instruction::IrMovq(*i, register);
                 *self = Self::Ready;
-                Some(ins)
+                Ok(Some(ins))
             }
 
             _ => unreachable!(),
@@ -193,25 +210,48 @@ impl Into<Vec<u8>> for Instruction {
 }
 
 impl Register {
-    pub fn from_symbolic(sym: &'_ str) -> Self {
+    pub fn from_symbolic(sym: &'_ str) -> Result<Self, Error> {
         match sym {
-            "%rax" => Self::Rax,
-            "%rcx" => Self::Rcx,
-            "%rdx" => Self::Rdx,
-            "%rbx" => Self::Rbx,
-            "%rsp" => Self::Rsp,
-            "%rbp" => Self::Rbp,
-            "%rsi" => Self::Rsi,
-            "%rdi" => Self::Rdi,
-            "%r8" => Self::R8,
-            "%r9" => Self::R9,
-            "%r10" => Self::R10,
-            "%r11" => Self::R11,
-            "%r12" => Self::R12,
-            "%r13" => Self::R13,
-            "%r14" => Self::R14,
-            _ => todo!("haha error handling what a funny joke haha"),
+            "%rax" => Ok(Self::Rax),
+            "%rcx" => Ok(Self::Rcx),
+            "%rdx" => Ok(Self::Rdx),
+            "%rbx" => Ok(Self::Rbx),
+            "%rsp" => Ok(Self::Rsp),
+            "%rbp" => Ok(Self::Rbp),
+            "%rsi" => Ok(Self::Rsi),
+            "%rdi" => Ok(Self::Rdi),
+            "%r8" => Ok(Self::R8),
+            "%r9" => Ok(Self::R9),
+            "%r10" => Ok(Self::R10),
+            "%r11" => Ok(Self::R11),
+            "%r12" => Ok(Self::R12),
+            "%r13" => Ok(Self::R13),
+            "%r14" => Ok(Self::R14),
+            _ => Err(Error::BadRegister(sym.to_string())),
         }
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::IoFailed(err)
+    }
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "\x1b[0;31m{}\x1b[0;m",
+            match self {
+                Self::BadRegister(s) => format!("Expected a register, but got `{}`", s),
+                Self::BadInstruction(s) => format!("Expected an instruction, but got `{}`.", s),
+                Self::BadInt(got, base) =>
+                    format!("Expected integer with base {}, but got `{}`.", base, got),
+
+                Self::IoFailed(e) => format!("Couldn't perform necessary IO ({})", e),
+            }
+        )
     }
 }
 

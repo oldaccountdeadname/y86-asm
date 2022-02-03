@@ -1,4 +1,4 @@
-use crate::assembler::AsmUnit;
+use crate::assembler;
 
 #[derive(Debug)]
 pub struct RunConf {
@@ -14,7 +14,8 @@ impl RunConf {
     pub fn make(self) -> i32 {
         let _asm = match self.assemble() {
             Ok(k) => k,
-            Err(_) => {
+            Err(e) => {
+                eprintln!("Error occured while assembling: {}", e);
                 return 1;
             }
         };
@@ -22,11 +23,11 @@ impl RunConf {
         0
     }
 
-    fn assemble(&self) -> Result<Vec<AsmUnit>, std::io::Error> {
+    fn assemble(&self) -> Result<Vec<assembler::AsmUnit>, assembler::Error> {
         let mut units = Vec::with_capacity(self.inputs.len());
 
         for input in &self.inputs {
-            units.push(AsmUnit::read_asm(input)?);
+            units.push(assembler::AsmUnit::read_asm(input)?);
         }
 
         Ok(units)
