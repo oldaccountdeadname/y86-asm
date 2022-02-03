@@ -23,7 +23,7 @@ impl RunConf {
         0
     }
 
-    fn assemble(&self) -> Result<Vec<assembler::AsmUnit>, assembler::Error> {
+    fn assemble(&self) -> assembler::Result<Vec<assembler::AsmUnit>> {
         let mut units = Vec::with_capacity(self.inputs.len());
 
         for input in &self.inputs {

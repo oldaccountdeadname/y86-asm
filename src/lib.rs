@@ -9,6 +9,7 @@ filenames as arguments to the CLI. If no output filename is specified with the
 pub mod driver;
 
 mod assembler;
+mod util;
 
 use driver::RunConf;
 

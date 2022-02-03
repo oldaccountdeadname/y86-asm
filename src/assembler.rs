@@ -22,6 +22,10 @@ use std::fs;
 use std::io::{self, BufRead};
 use std::str::FromStr;
 
+use crate::util::MaybeLined;
+
+pub type Result<T> = std::result::Result<T, MaybeLined<Error>>;
+
 /// This is analogous to a single assembly file. It stores a symbol table of
 /// labels and their positions within self, and an in-memory byte array of the
 /// assembly.
@@ -40,22 +44,35 @@ pub enum Error {
 }
 
 impl AsmUnit {
-    pub fn read_asm(path: &'_ str) -> Result<Self, Error> {
-        let file = fs::File::open(path)?;
+    pub fn read_asm(path: &'_ str) -> Result<Self> {
+        let file = fs::File::open(path)
+            .map_err(|x| MaybeLined::no_line(Error::IoFailed(x)))?;
+
         let file = io::BufReader::new(file);
 
         let mut builder = Builder::empty();
 
-        for line in file.lines() {
-            for word in line?.split_whitespace() {
+        for (line_no, line) in file.lines().enumerate() {
+            let line = match line {
+                Ok(l) => l,
+                Err(x) => {
+                    return Err(MaybeLined::no_line(Error::IoFailed(x)));
+                },
+            };
+
+            for word in line.split_whitespace() {
                 // we want to allow separating instructions with semicolons
                 for token in word.split(';') {
-                    builder.instruct(token)?;
+                    if let Err(e) = builder.instruct(token) {
+                        return Err(MaybeLined::new(line_no + 1, e));
+                    }
                 }
             }
 
             if builder.state() != &State::Ready {
-                return Err(Error::IncompleteStatement);
+                return Err(MaybeLined::new(
+                    line_no + 1, Error::IncompleteStatement
+                ));
             }
         }
 
@@ -121,7 +138,7 @@ impl Builder {
         }
     }
 
-    pub fn instruct(&mut self, word: &'_ str) -> Result<(), Error> {
+    pub fn instruct(&mut self, word: &'_ str) -> std::result::Result<(), Error> {
         if let Some(ins) = self.state.next(word)? {
             let bytes: Vec<u8> = ins.into();
             self.inner.asm.extend(bytes);
@@ -140,7 +157,9 @@ impl Builder {
 }
 
 impl State {
-    pub fn next(&mut self, word: &'_ str) -> Result<Option<Instruction>, Error> {
+    pub fn next(
+        &mut self, word: &'_ str
+    ) -> std::result::Result<Option<Instruction>, Error> {
         match self {
             Self::Ready => match word {
                 "halt" => Ok(Some(Instruction::Halt)),
@@ -220,7 +239,7 @@ impl Into<Vec<u8>> for Instruction {
 }
 
 impl Register {
-    pub fn from_symbolic(sym: &'_ str) -> Result<Self, Error> {
+    pub fn from_symbolic(sym: &'_ str) -> std::result::Result<Self, Error> {
         match sym {
             "%rax" => Ok(Self::Rax),
             "%rcx" => Ok(Self::Rcx),
