@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "err.h"
 #include "driver.h"
 
 static void help(int);
@@ -16,11 +17,10 @@ int
 main(int argc, char **argv)
 {
 	struct run_conf rc;
-	int input_num;
+	struct err_set *es;
+	int input_num, err_count;
 
-	// A array of statically allocated input filenames.
 	char *inputs[128];
-	// The path of output.
 	char *output = "a.out";
 
 	input_num = parse_args(argc, argv, inputs, &output, 128);
@@ -30,7 +30,14 @@ main(int argc, char **argv)
 	rc.outputf = output;
 	rc.input_num = input_num;
 
-	return assemble(&rc);
+	es = make(&rc);
+	err_count = es->len;
+
+	for (int i = 0; i < err_count; i++)
+		err_disp(&es->e[i]);
+
+	free_err_set(es);
+	return err_count != 0;
 }
 
 static void
