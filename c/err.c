@@ -21,11 +21,11 @@ err_append(struct err_set *es, struct err e)
 void
 err_disp(const struct err *e)
 {
-	fprintf(stderr, "\033[1;31m");
+	fprintf(stderr, "\033[1;31mError:\033[0m ");
 	switch (e->type) {
 	case RE_FNOOPEN:
 		fprintf(stderr, "Couldn't open file %s.\033[0m\n", e->data.path);
-		fprintf(stderr, "\033[0;33mDoes it exist with proper permissions?\n");
+		fprintf(stderr, "       \033[0;33mDoes it exist with proper permissions?\n");
 		break;
 	default:
 		break;
