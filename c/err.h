@@ -3,10 +3,11 @@
 #define ERR_H
 struct err {
 	enum {
-		RE_NOERR, RE_FNOOPEN,
+		RE_NOERR, RE_FNOOPEN, RE_NOINS,
 	} type;
 	union {
-		const char *path;
+		const char *path; /* borrowed. */
+		char *ins; /* owned. */
 	} data;
 };
 
@@ -18,5 +19,6 @@ struct err_set {
 
 void err_append(struct err_set *, struct err);
 void err_disp(const struct err *);
+void err_free_asc(struct err *);
 
 #endif

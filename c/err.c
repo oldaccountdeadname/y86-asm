@@ -27,9 +27,22 @@ err_disp(const struct err *e)
 		fprintf(stderr, "Couldn't open file %s.\033[0m\n", e->data.path);
 		fprintf(stderr, "       \033[0;33mDoes it exist with proper permissions?\n");
 		break;
+	case RE_NOINS:
+		fprintf(stderr, "Didn't recognize instruction %s.\033[0m\n", e->data.ins);
 	default:
 		break;
 	}
 
 	fprintf(stderr, "\033[0m");
+}
+
+void
+err_free_asc(struct err *e)
+{
+	switch (e->type) {
+	case RE_NOINS:
+		free(e->data.ins);
+	default:
+		break;
+	}
 }
