@@ -23,7 +23,7 @@ enum flags {
 	OF = 0x0,
 	SF,
 	ZF,
-}
+};
 
 int getReg(int regNum);
 void storeReg(int regNum, int value);
