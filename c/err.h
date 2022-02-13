@@ -1,6 +1,4 @@
 // stddef must be included before this header file.
-#ifndef ERR_H
-#define ERR_H
 struct err {
 	enum {
 		RE_NOERR, RE_FNOOPEN, RE_NOINS,
@@ -20,5 +18,3 @@ struct err_set {
 void err_append(struct err_set *, struct err);
 void err_disp(const struct err *);
 void err_free_asc(struct err *);
-
-#endif
