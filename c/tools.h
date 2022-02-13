@@ -15,5 +15,4 @@ char * revchararr( char * arr,   short int size);
 void remchars(char *str, char c);
 bool valinarr(int val, int * arr, int size);
 void chopStart(char *str, size_t n);
-char *strdup(const char *str);
 size_t splitString(char *line, char ***sve_record, char *split);
