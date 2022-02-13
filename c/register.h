@@ -19,9 +19,9 @@
 #define SF     0x1
 #define OF     0x0
 
-int getReg(int regNum);
-void setReg(int regNum, unsigned int regValue);
-void clearReg();
-void clearCC();
-void setCC(unsigned int bitNumber, unsigned int value);
-int getCC(unsigned int bitNumber);
+int get_reg(int regNum);
+void set_reg(int regNum, unsigned int regValue);
+void clear_reg(void);
+void clear_cc(void);
+void set_cc(unsigned int bitNumber, unsigned int value);
+int get_cc(unsigned int bitNumber);
