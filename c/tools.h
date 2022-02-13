@@ -4,7 +4,7 @@ int joinBytes(  char *bytes);
 int getBits(int low, int high, int source);
 int setBits(int low, int high, int source);
 int clearBits(int low, int high, int source);
-int assignABit(int bitNumber, int bitValue, int source);
+int assignBit(int bitNumber, int bitValue, int source);
 char getByteNumber(int byteNo, int source);
 int setByteNumber(int byteNo, char byteValue, int source);
 int buildWord(char byte0, char byte1, char byte2, char byte3);
