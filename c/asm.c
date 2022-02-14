@@ -22,7 +22,7 @@ struct asm_unit {
 
 static void asmf(struct asm_unit *, FILE *, struct err_set *);
 
-/* Consume the first instruction read into the given gen_ins struuct pointer.
+/* Consume the first instruction read into the given gen_ins struct pointer.
  * Errors are set in the given error, and a pointer to the next location is
  * returned. */
 static char *read_ins(char *, struct gen_ins *, struct err *);
