@@ -7,7 +7,7 @@ y86-asm: main.o driver.o asm.o err.o
 err.o: err.h err.c
 	$(CC) $(CFLAGS) -c err.c -o err.o
 
-asm.o: asm.c asm.h err.h
+asm.o: asm.c asm.h err.h ins.h
 	$(CC) $(CFLAGS) -c asm.c -o asm.o
 
 driver.o: driver.h driver.c asm.h err.h
