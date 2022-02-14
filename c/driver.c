@@ -13,12 +13,25 @@ make(const struct run_conf *c)
 {
 	struct asm_unit **units;
 	struct err_set *es;
+	struct err e;
+	FILE *o;
 
 	es = alloc_err_set();
+
+	o = fopen(c->outputf, "w");
+	if (!o) {
+		e.type = RE_FNOOPEN;
+		e.data.path = c->outputf;
+		err_append(es, e);
+	}
 	units = assemble(c, es);
 
-	for (int i = 0; i < c->input_num; i++)
-		if (units[i]) asm_destroy_unit(units[i]);
+	for (int i = 0; i < c->input_num; i++) {
+		if (units[i]) {
+			asm_unit_write(o, units[i]);
+			asm_destroy_unit(units[i]);
+		}
+	}
 
 	free(units);
 	return es;

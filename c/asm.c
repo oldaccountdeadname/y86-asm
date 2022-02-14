@@ -44,6 +44,12 @@ asm_unit_parse(FILE *restrict f, struct err_set *es)
 }
 
 void
+asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
+{
+	fwrite(u->ins, 10, u->len, o);
+}
+
+void
 asm_destroy_unit(struct asm_unit *x)
 {
 	if (x->ins) free (x->ins);
