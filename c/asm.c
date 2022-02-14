@@ -46,7 +46,13 @@ asm_unit_parse(FILE *restrict f, struct err_set *es)
 void
 asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 {
-	fwrite(u->ins, 10, u->len, o);
+	struct gen_ins *x;
+	for (int i = 0; i < u->len; i++) {
+		x = &u->ins[i];
+		fwrite(&x->op, 1, 1, o);
+		fwrite(&x->reg, 1, 1, o);
+		fwrite(&x->imdte, 8, 1, o);
+	}
 }
 
 void
@@ -89,8 +95,7 @@ read_ins(char *in, struct gen_ins *out, struct err *e)
 
 	e->type = RE_NOERR;
 	out->op = 0;
-	out->rsrc = 0;
-	out->rdst = 0;
+	out->reg = 0x00;
 	out->imdte = 0;
 
 	for (; in[oplen] != '\0' && !isspace(in[oplen]); oplen++);
