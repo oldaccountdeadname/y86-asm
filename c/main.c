@@ -59,8 +59,8 @@ static int
 parse_args(int argc, char **argv, char **inputs, char **output, int max_infs)
 {
 	char *arg;
-	int on_out, on_in, next_in;
-	on_out = on_in = next_in = 0;
+	int on_out, next_in;
+	on_out = next_in = 0;
 
 	// start iterating at 1 to skip over y86's name
 	for (int i = 1; i < argc; i++) {
@@ -68,16 +68,11 @@ parse_args(int argc, char **argv, char **inputs, char **output, int max_infs)
 		if (on_out) {
 			*output = arg;
 			on_out = 0;
-		} else if (on_in && next_in < max_infs) {
-			inputs[next_in++] = arg;
-			on_in = 0;
 		} else if (strcmp(arg, "--output") == 0) {
 			on_out = 1;
-		} else if (strcmp(arg, "--input") == 0) {
-			on_in = 1;
-		} else {
+		} else if (strcmp(arg, "--help") == 0) {
 			return -1;
-		}
+		} else inputs[next_in++] = arg;
 	}
 
 	return argc < 2 ? -1 : next_in;
