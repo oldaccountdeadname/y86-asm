@@ -2,6 +2,6 @@
 
 struct asm_unit;
 
-struct asm_unit *asm_unit_parse(const char *, struct err_set *);
+struct asm_unit *asm_unit_parse(FILE *, struct err_set *);
 
 void asm_destroy_unit(struct asm_unit *);

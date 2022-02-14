@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "err.h"
@@ -37,9 +38,24 @@ free_err_set(struct err_set *es)
 static struct asm_unit **
 assemble(const struct run_conf *c, struct err_set *es)
 {
-	struct asm_unit **l = malloc(sizeof(struct asm_unit *) * c->input_num);
-	for (int i = 0; i < c->input_num; i++)
-		l[i] = asm_unit_parse(c->inputs[i], es);
+	FILE *in;
+	struct err err;
+	struct asm_unit **l;
+
+	l = malloc(sizeof(struct asm_unit *) * c->input_num);
+	for (int i = 0; i < c->input_num; i++) {
+		in = fopen(c->inputs[i], "r");
+
+		if (!in) {
+			err.type = RE_FNOOPEN;
+			err.data.path = c->inputs[i];
+			err_append(es, err);
+			l[i] = NULL;
+		} else {
+			l[i] = asm_unit_parse(in, es);
+			if (in) fclose(in);
+		}
+	}
 
 	return l;
 }

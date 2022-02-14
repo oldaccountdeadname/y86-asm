@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "err.h"
@@ -27,19 +28,9 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
 static char *read_ins(char *, struct gen_ins *, struct err *);
 
 struct asm_unit *
-asm_unit_parse(const char *p, struct err_set *es)
+asm_unit_parse(FILE *restrict f, struct err_set *es)
 {
 	struct asm_unit *x = NULL;
-	struct err err;
-	FILE *f;
-
-	f = fopen(p, "r");
-	if (!f) {
-		err.type = RE_FNOOPEN;
-		err.data.path = p;
-		err_append(es, err);
-		return NULL;
-	}
 
 	x = malloc(sizeof(struct asm_unit));
 	x->cap = INIT_BUF_SIZE;
