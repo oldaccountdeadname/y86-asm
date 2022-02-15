@@ -39,7 +39,6 @@ asm_unit_parse(FILE *restrict f, struct err_set *es)
 
 	asmf(x, f, es);
 
-	fclose(f);
 	return x;
 }
 

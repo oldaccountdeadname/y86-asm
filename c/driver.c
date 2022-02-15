@@ -66,7 +66,7 @@ assemble(const struct run_conf *c, struct err_set *es)
 			l[i] = NULL;
 		} else {
 			l[i] = asm_unit_parse(in, es);
-			if (in) fclose(in);
+			fclose(in);
 		}
 	}
 
