@@ -77,14 +77,14 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
-		ln = read_ins(ln, &g, &e);
+		read_ins(ln, &g, &e);
 		if (e.type == RE_NOERR)
 			// TODO: protect against buffer overflow
 			u->ins[u->len++] = g;
 		else err_append(es, e);
 	}
 
-	free(ln);
+	if (ln) free(ln);
 }
 
 static char *
