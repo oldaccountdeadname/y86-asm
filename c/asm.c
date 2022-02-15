@@ -68,20 +68,24 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 	struct gen_ins g;
 	struct err e;
 	char *ln;
-	size_t l;
+	ssize_t l;
+	size_t c;
 
-	for (;;) {
-		ln = fgetln(f, &l);
-		if (!ln) break;
-		else ln[--l] = '\0'; // null-terminate
+	c = l = 0;
+	ln = NULL;
 
+	while ((l = getline(&ln, &c, f)) > 0) {
+		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
+
 		ln = read_ins(ln, &g, &e);
 		if (e.type == RE_NOERR)
 			// TODO: protect against buffer overflow
 			u->ins[u->len++] = g;
 		else err_append(es, e);
 	}
+
+	free(ln);
 }
 
 static char *
