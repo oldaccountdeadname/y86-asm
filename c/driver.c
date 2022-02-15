@@ -33,6 +33,7 @@ make(const struct run_conf *c)
 		}
 	}
 
+	fclose(o);
 	free(units);
 	return es;
 }
