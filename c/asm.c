@@ -70,16 +70,12 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 	char *ln;
 	size_t l;
 
-	ln = fgetln(f, &l);
-	ln[--l] = '\0'; // null-terminate
-
 	for (;;) {
-		if (*ln == '\0') {
-			ln = fgetln(f, &l);
-			if (ln == NULL) break;
-			else ln[--l] = '\0';
-		}
+		ln = fgetln(f, &l);
+		if (!ln) break;
+		else ln[--l] = '\0'; // null-terminate
 
+		if (ln[0] == '\0') continue;
 		ln = read_ins(ln, &g, &e);
 		if (e.type == RE_NOERR)
 			// TODO: protect against buffer overflow
