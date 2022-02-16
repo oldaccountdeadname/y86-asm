@@ -23,9 +23,9 @@ struct asm_unit {
 static void asmf(struct asm_unit *, FILE *, struct err_set *);
 
 /* Consume the first instruction read into the given gen_ins struct pointer.
- * Errors are set in the given error, and a pointer to the next location is
- * returned. */
-static char *read_ins(char *, struct gen_ins *, struct err *);
+ * Errors are added to given error set. If no errors occured, 0 is returned,
+ * otherwise, a non-zero value is returned. */
+static int read_ins(char *, struct gen_ins *, struct err_set *);
 
 static char *consume_whitespace(char *);
 static void strip_comment(char *);
@@ -68,7 +68,6 @@ static void
 asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 {
 	struct gen_ins g;
-	struct err e;
 	char *ln;
 	ssize_t l;
 	size_t c;
@@ -80,22 +79,21 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
-		read_ins(ln, &g, &e);
-		if (e.type == RE_NOERR)
+		if (read_ins(ln, &g, es) == 0)
 			// TODO: protect against buffer overflow
 			u->ins[u->len++] = g;
-		else err_append(es, e);
 	}
 
 	if (ln) free(ln);
 }
 
-static char *
-read_ins(char *in, struct gen_ins *out, struct err *e)
+static int
+read_ins(char *in, struct gen_ins *out, struct err_set *es)
 {
 	size_t oplen = 0;
+	struct err e;
 
-	e->type = RE_NOERR;
+	e.type = RE_NOERR;
 	out->op = 0;
 	out->reg = 0x00;
 	out->imdte = 0;
@@ -109,11 +107,13 @@ read_ins(char *in, struct gen_ins *out, struct err *e)
 	} else if (strncmp(in, "nop", oplen) == 0) {
 		out->op = O_NOP;
 	} else {
-		e->type = RE_NOINS;
-		e->data.ins = strndup(in, oplen);
+		e.type = RE_NOINS;
+		e.data.ins = strndup(in, oplen);
+		err_append(es, e);
+		return 1;
 	}
 
-	return in + oplen;
+	return 0;
 }
 
 static char *
