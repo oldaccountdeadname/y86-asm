@@ -104,15 +104,14 @@ read_ins(char *in, struct gen_ins *out, struct err *e)
 
 	if (strncmp(in, "hlt", oplen) == 0) {
 		out->op = O_HLT;
-		return in + 3;
 	} else if (strncmp(in, "nop", oplen) == 0) {
 		out->op = O_NOP;
-		return in + 3;
 	} else {
 		e->type = RE_NOINS;
 		e->data.ins = strndup(in, oplen);
-		return in + oplen;
 	}
+
+	return in + oplen;
 }
 
 static char *
