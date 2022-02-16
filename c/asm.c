@@ -27,6 +27,8 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
  * returned. */
 static char *read_ins(char *, struct gen_ins *, struct err *);
 
+static char *consume_whitespace(char *);
+
 struct asm_unit *
 asm_unit_parse(FILE *restrict f, struct err_set *es)
 {
@@ -97,6 +99,7 @@ read_ins(char *in, struct gen_ins *out, struct err *e)
 	out->reg = 0x00;
 	out->imdte = 0;
 
+	in = consume_whitespace(in);
 	for (; in[oplen] != '\0' && !isspace(in[oplen]); oplen++);
 
 	if (strncmp(in, "hlt", oplen) == 0) {
@@ -110,4 +113,11 @@ read_ins(char *in, struct gen_ins *out, struct err *e)
 		e->data.ins = strndup(in, oplen);
 		return in + oplen;
 	}
+}
+
+static char *
+consume_whitespace(char *x)
+{
+	while (*x != '\0' && isspace(*x)) x++;
+	return x;
 }
