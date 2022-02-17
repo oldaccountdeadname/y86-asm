@@ -201,7 +201,6 @@ read_imdte(char *in, unsigned long *x, struct err_set *es)
 	if (*end == ',') end++; // allow a trailing comma
 
 	if (*end != '\0' && !isspace(*end)) {
-
 		e.type = RE_BADINT;
 		e.data.bint = strndup(in, len);
 		err_append(es, e);
