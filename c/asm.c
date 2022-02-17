@@ -11,8 +11,7 @@
 #include "register.h"
 
 
-// this is a wild guess (allows for 512 instructions before reallloc
-#define INIT_BUF_SIZE 2048
+#define INIT_BUF_SIZE 64
 
 struct asm_unit {
 	// TODO: symbol table trie
@@ -42,7 +41,7 @@ asm_unit_parse(FILE *restrict f, struct err_set *es)
 
 	x = malloc(sizeof(struct asm_unit));
 	x->cap = INIT_BUF_SIZE;
-	x->ins = malloc(x->cap);
+	x->ins = malloc(x->cap * sizeof(struct gen_ins));
 	x->len = 0;
 
 	asmf(x, f, es);
@@ -84,9 +83,15 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
-		if (read_ins(ln, &g, es) == 0)
-			// TODO: protect against buffer overflow
+		if (read_ins(ln, &g, es) == 0) {
+			if (u->len + 1 >= u->cap) {
+				u->cap *= 2;
+				u->ins = realloc(u->ins, u->cap * sizeof(struct gen_ins));
+			}
+
+			// Might as well blow up here if allocation failed.
 			u->ins[u->len++] = g;
+		}
 	}
 
 	if (ln) free(ln);
