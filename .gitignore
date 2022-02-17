@@ -3,3 +3,5 @@ c/y86-asm
 
 *.o
 *.core
+
+/result
