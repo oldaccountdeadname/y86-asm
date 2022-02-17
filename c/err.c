@@ -33,7 +33,10 @@ err_disp(const struct err *e)
 	case RE_NOREG:
 		fprintf(stderr, "Didn't recognize register %s.\033[0m\n", e->data.reg);
 		break;
-	default:
+	case RE_BADINT:
+		fprintf(stderr, "Expected integer, got %s.\033[0m\n", e->data.bint);
+		break;
+	case RE_NOERR:
 		break;
 	}
 

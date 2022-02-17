@@ -30,6 +30,7 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
 static int read_ins(char *, struct gen_ins *, struct err_set *);
 
 static char *read_reg(char *, unsigned char *, struct err_set *);
+static char *read_imdte(char *, unsigned long *, struct err_set *);
 
 static char *consume_whitespace(char *);
 static void strip_comment(char *);
@@ -115,6 +116,12 @@ read_ins(char *in, struct gen_ins *out, struct err_set *es)
 		in = read_reg(in + 6, &out->reg, es);
 		out->reg <<= 4;
 		read_reg(in, &out->reg, es);
+	} else if (strncmp(in, "irmovq", oplen) == 0) {
+		out->op = O_IRM;
+		in = read_imdte(in + 6, &out->imdte, es);
+		out->reg = RNONE;
+		out->reg <<= 4;
+		read_reg(in, &out->reg, es);
 	} else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
@@ -178,6 +185,29 @@ read_reg(char *in, unsigned char *r, struct err_set *es)
 	}
 
 	return in + oplen + padding;
+}
+
+static char *
+read_imdte(char *in, unsigned long *x, struct err_set *es)
+{
+	size_t len = 0;
+	struct err e;
+	char *end;
+	in = consume_whitespace(in);
+
+	for (; in[len] != '\0' && !isspace(in[len]); len++);
+
+	*x = strtol(in, &end, 0);
+	if (*end == ',') end++; // allow a trailing comma
+
+	if (*end != '\0' && !isspace(*end)) {
+
+		e.type = RE_BADINT;
+		e.data.bint = strndup(in, len);
+		err_append(es, e);
+	}
+
+	return in + len;
 }
 
 static char *

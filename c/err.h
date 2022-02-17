@@ -1,12 +1,13 @@
 // stddef must be included before this header file.
 struct err {
 	enum {
-		RE_NOERR, RE_FNOOPEN, RE_NOINS, RE_NOREG,
+		RE_NOERR, RE_FNOOPEN, RE_NOINS, RE_NOREG, RE_BADINT,
 	} type;
 	union {
 		const char *path; /* borrowed. */
 		char *ins; /* owned. */
 		char *reg; /* owned. */
+		char *bint; /* owned. */
 	} data;
 };
 
