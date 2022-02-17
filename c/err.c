@@ -29,6 +29,10 @@ err_disp(const struct err *e)
 		break;
 	case RE_NOINS:
 		fprintf(stderr, "Didn't recognize instruction %s.\033[0m\n", e->data.ins);
+		break;
+	case RE_NOREG:
+		fprintf(stderr, "Didn't recognize register %s.\033[0m\n", e->data.reg);
+		break;
 	default:
 		break;
 	}
@@ -42,6 +46,8 @@ err_free_asc(struct err *e)
 	switch (e->type) {
 	case RE_NOINS:
 		free(e->data.ins);
+	case RE_NOREG:
+		free(e->data.reg);
 	default:
 		break;
 	}
