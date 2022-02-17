@@ -1,5 +1,3 @@
-#include "register.h"
-
 /* A structure storing the general form of most instructions. Control flow
  * instructions, however, (jXX and call) are exceptions to this form. */
 struct gen_ins {
