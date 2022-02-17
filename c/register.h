@@ -4,6 +4,7 @@ enum reg {
 	RDX,
 	RBX,
 	RSP,
+	RBP,
 	RSI,
 	RDI,
 	R8,
