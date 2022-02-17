@@ -1,0 +1,1 @@
+irmovq 0x123, %rax
