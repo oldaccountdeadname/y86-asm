@@ -28,7 +28,7 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
  * otherwise, a non-zero value is returned. */
 static int read_ins(char *, struct gen_ins *, struct err_set *);
 
-static char *read_reg(char *, unsigned char *, char, int, struct err_set *);
+static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
 static char *read_imdte(char *, unsigned long *, char, struct err_set *);
 
 static char *consume_whitespace(char *);
@@ -118,18 +118,23 @@ read_ins(char *in, struct gen_ins *out, struct err_set *es)
 		out->op = O_NOP;
 	} else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->op = O_RRM;
-		in = read_reg(in + 6, &out->reg, ',', 1, es);
-		read_reg(in, &out->reg, '\0', 0, es);
+		in = read_reg(in + 6, &out->reg, ",", 1, es);
+		read_reg(in, &out->reg, "", 0, es);
 	} else if (strncmp(in, "irmovq", oplen) == 0) {
 		out->op = O_IRM;
 		in = read_imdte(in + 6, &out->imdte, ',', es);
 		out->reg = RNONE << 4;
-		read_reg(in, &out->reg, '\0', 0, es);
+		read_reg(in, &out->reg, "", 0, es);
 	} else if (strncmp(in, "rmmovq", oplen) == 0) {
 		out->op = O_RMM;
-		in = read_reg(in + 6, &out->reg, ',', 1, es);
+		in = read_reg(in + 6, &out->reg, ",", 1, es);
 		in = read_imdte(in, &out->imdte, '(', es);
-		in = read_reg(in, &out->reg, ')', 0, es);
+		in = read_reg(in, &out->reg, ")", 0, es);
+	} else if (strncmp(in, "mrmovq", oplen) == 0) {
+		out->op = O_MRM;
+		in = read_imdte(in + 6, &out->imdte, '(', es);
+		in = read_reg(in, &out->reg, "),", 1, es);
+		in = read_reg(in, &out->reg, "\0", 0, es);
 	} else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
@@ -141,19 +146,22 @@ read_ins(char *in, struct gen_ins *out, struct err_set *es)
 }
 
 static char *
-read_reg(char *in, unsigned char *r, char term, int upper, struct err_set *es)
+read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es)
 {
+	char *c;
 	struct err e;
 	size_t oplen, padding;
 	in = consume_whitespace(in);
 
 	oplen = padding = 0;
-	for (char *c = in; *c != '\0'; c++, oplen++) {
+	for (c = in; *c != '\0'; c++, oplen++) {
 		if (isspace(*c)) break;
-		if (*c == term) {
-			padding++;
-			oplen--;
-		}
+	}
+
+	size_t l = strlen(term);
+	if (c >= in + l && strncmp(c - l, term, l) == 0) {
+		padding += l;
+		oplen -= l;
 	}
 
 	if (strncmp(in, "%rax", oplen) == 0) {

@@ -12,5 +12,6 @@ enum op {
 	O_RRM = 0x20, /* rrmovq */
 	O_IRM = 0x30, /* irmovq */
 	O_RMM = 0x40, /* rmmovq */
+	O_MRM = 0x50, /* mrmovq */
 	// ... (TODO)
 };
