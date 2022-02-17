@@ -28,7 +28,7 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
  * otherwise, a non-zero value is returned. */
 static int read_ins(char *, struct gen_ins *, struct err_set *);
 
-static char *read_reg(char *, unsigned char *, char, struct err_set *);
+static char *read_reg(char *, unsigned char *, char, int, struct err_set *);
 static char *read_imdte(char *, unsigned long *, char, struct err_set *);
 
 static char *consume_whitespace(char *);
@@ -118,21 +118,18 @@ read_ins(char *in, struct gen_ins *out, struct err_set *es)
 		out->op = O_NOP;
 	} else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->op = O_RRM;
-		in = read_reg(in + 6, &out->reg, ',', es);
-		out->reg <<= 4;
-		read_reg(in, &out->reg, '\0', es);
+		in = read_reg(in + 6, &out->reg, ',', 1, es);
+		read_reg(in, &out->reg, '\0', 0, es);
 	} else if (strncmp(in, "irmovq", oplen) == 0) {
 		out->op = O_IRM;
 		in = read_imdte(in + 6, &out->imdte, ',', es);
-		out->reg = RNONE;
-		out->reg <<= 4;
-		read_reg(in, &out->reg, '\0', es);
+		out->reg = RNONE << 4;
+		read_reg(in, &out->reg, '\0', 0, es);
 	} else if (strncmp(in, "rmmovq", oplen) == 0) {
 		out->op = O_RMM;
-		in = read_reg(in + 6, &out->reg, ',', es);
-		out->reg <<= 4;
+		in = read_reg(in + 6, &out->reg, ',', 1, es);
 		in = read_imdte(in, &out->imdte, '(', es);
-		in = read_reg(in, &out->reg, ')', es);
+		in = read_reg(in, &out->reg, ')', 0, es);
 	} else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
@@ -144,7 +141,7 @@ read_ins(char *in, struct gen_ins *out, struct err_set *es)
 }
 
 static char *
-read_reg(char *in, unsigned char *r, char term, struct err_set *es)
+read_reg(char *in, unsigned char *r, char term, int upper, struct err_set *es)
 {
 	struct err e;
 	size_t oplen, padding;
@@ -160,35 +157,35 @@ read_reg(char *in, unsigned char *r, char term, struct err_set *es)
 	}
 
 	if (strncmp(in, "%rax", oplen) == 0) {
-		*r |= RAX;
+		*r |= RAX << (4 * upper);
 	} else if (strncmp(in, "%rcx", oplen) == 0) {
-		*r |= RCX;
+		*r |= RCX << (4 * upper);
 	} else if (strncmp(in, "%rdx", oplen) == 0) {
-		*r |= RDX;
+		*r |= RDX << (4 * upper);
 	} else if (strncmp(in, "%rbx", oplen) == 0) {
-		*r |= RBX;
+		*r |= RBX << (4 * upper);
 	} else if (strncmp(in, "%rsp", oplen) == 0) {
-		*r |= RSP;
+		*r |= RSP << (4 * upper);
 	} else if (strncmp(in, "%rbp", oplen) == 0) {
-		*r |= RBP;
+		*r |= RBP << (4 * upper);
 	} else if (strncmp(in, "%rsi", oplen) == 0) {
-		*r |= RSI;
+		*r |= RSI << (4 * upper);
 	} else if (strncmp(in, "%rdi", oplen) == 0) {
-		*r |= RDI;
+		*r |= RDI << (4 * upper);
 	} else if (strncmp(in, "%r8", oplen) == 0) {
-		*r |= R8;
+		*r |= R8 << (4 * upper);
 	} else if (strncmp(in, "%r9", oplen) == 0) {
-		*r |= R9;
+		*r |= R9 << (4 * upper);
 	} else if (strncmp(in, "%r10", oplen) == 0) {
-		*r |= R10;
+		*r |= R10 << (4 * upper);
 	} else if (strncmp(in, "%r11", oplen) == 0) {
-		*r |= R11;
+		*r |= R11 << (4 * upper);
 	} else if (strncmp(in, "%r12", oplen) == 0) {
-		*r |= R12;
+		*r |= R12 << (4 * upper);
 	} else if (strncmp(in, "%r13", oplen) == 0) {
-		*r |= R13;
+		*r |= R13 << (4 * upper);
 	} else if (strncmp(in, "%r14", oplen) == 0) {
-		*r |= R14;
+		*r |= R14 << (4 * upper);
 	} else {
 		e.type = RE_NOREG;
 		e.data.reg = strndup(in, oplen);
