@@ -5,3 +5,4 @@ c/y86-asm
 *.core
 
 /result
+tests/*.s.actual
