@@ -1,5 +1,5 @@
 rust/target
-c/y86-asm
+src/y86-asm
 
 *.o
 *.core

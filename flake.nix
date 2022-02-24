@@ -10,13 +10,13 @@
       src = ./.;
 
       buildPhase = ''
-        make -C c/
+        make -C src/
       '';
 
       installPhase = ''
         mkdir -p $out/bin
 
-        cp c/y86-asm $out/bin/y86-asm
+        cp src/y86-asm $out/bin/y86-asm
       '';
 
       installCheckPhase = ''
