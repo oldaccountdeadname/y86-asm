@@ -30,6 +30,7 @@ static int read_ins(char *, struct ins *, struct err_set *);
 
 static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
 static char *read_imdte(char *, unsigned long *, char, struct err_set *);
+static char *read_cond(char *, unsigned char *, const char *, struct err_set *);
 
 static char *consume_whitespace(char *);
 static void strip_comment(char *);
@@ -54,6 +55,9 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 {
 	struct ins *x;
 	struct gen_ins *g;
+	struct ctf_ins *c;
+	char *pad = ""; // a singe 0 byte.
+
 	for (int i = 0; i < u->len; i++) {
 		x = &u->ins[i];
 		switch (x->type) {
@@ -62,6 +66,15 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 			fwrite(&g->op, 1, 1, o);
 			fwrite(&g->reg, 1, 1, o);
 			fwrite(&g->imdte, 8, 1, o);
+			break;
+		case I_CTF:
+			c = &x->data.ctf;
+			fwrite(&c->op, 1, 1, o);
+			// TODO: handel label destinations.
+			fwrite(&c->dest.adr, 8, 1, o);
+
+			// Pad to 10 bytes.
+			fwrite(pad, 1, 1, o);
 		}
 	}
 }
@@ -142,6 +155,12 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es);
 		in = read_reg(in, &out->data.gen.reg, "),", 1, es);
 		in = read_reg(in, &out->data.gen.reg, "\0", 0, es);
+	} else if (in[0] == 'j') {
+		out->type = I_CTF;
+		out->data.ctf.op = O_JMP;
+		in = read_cond(in + 1, &out->data.ctf.op, "mp", es);
+		// TODO: handle labels.
+		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
 	} else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
@@ -229,6 +248,44 @@ read_imdte(char *in, unsigned long *x, char term, struct err_set *es)
 	}
 
 	return in + len;
+}
+
+static char *
+read_cond(char *in, unsigned char *x, const char *uncond, struct err_set *es)
+{
+	size_t oplen;
+	struct err e;
+
+	oplen = 0;
+	for (; in[oplen] != '\0'; oplen++) {
+		if (isspace(in[oplen]))
+			break;
+	}
+
+	// Note that order of comparisons is important here. (Matching is done
+	// greedily.)
+	if (strncmp(in, uncond, oplen) == 0)
+		*x |= C_UNCOND;
+	else if (strncmp(in, "l", oplen) == 0)
+		*x |= C_L;
+	else if (strncmp(in, "le", oplen) == 0)
+		*x |= C_LE;
+	else if (strncmp(in, "e", oplen) == 0)
+		*x |= C_E;
+	else if (strncmp(in, "ne", oplen) == 0)
+		*x |= C_NE;
+	else if (strncmp(in, "g", oplen) == 0)
+		*x |= C_G;
+	else if (strncmp(in, "ge", oplen) == 0)
+		*x |= C_GE;
+	else {
+		e.type = RE_BADCOND;
+		e.data.cond = strndup(in, oplen);
+
+		err_append(es, e);
+	}
+
+	return in + oplen;
 }
 
 static char *

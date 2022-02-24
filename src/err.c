@@ -36,6 +36,8 @@ err_disp(const struct err *e)
 	case RE_BADINT:
 		fprintf(stderr, "Expected integer, got %s.\033[0m\n", e->data.bint);
 		break;
+	case RE_BADCOND:
+		fprintf(stderr, "Condition '%s' (in jump or move) was not understood.\033[0m\n", e->data.cond);
 	case RE_NOERR:
 		break;
 	}
@@ -51,6 +53,8 @@ err_free_asc(struct err *e)
 		free(e->data.ins);
 	case RE_NOREG:
 		free(e->data.reg);
+	case RE_BADCOND:
+		free(e->data.cond);
 	default:
 		break;
 	}
