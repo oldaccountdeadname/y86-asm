@@ -6,3 +6,48 @@ An assembler and linker for the y86_64 instruction set, as described in
 
 Note that the C version serializes immediate values with host-endianness, so
 big-endian machines aren't supported (good luck finding one of those, though!).
+
+
+current status
+--------------
+
+The following instructions are implemented and tested:
+
+  halt
+  nop
+  rrmovq
+  irmovq
+  rmmovq
+  mrmovq
+  jmp
+  jle
+  jl
+  je
+  jne
+  jge
+  jg
+
+The following instructions are unimplemented:
+
+  addq
+  subq
+  andq
+  xorq
+  cmovle
+  cmovl
+  cmove
+  cmovne
+  cmovge
+  cmovg
+  call
+  ret
+  pushq
+  popq
+
+The following features are unimplemented:
+
+  labels
+  linker directives
+  multiple instructions/line
+      (i.e., popq %rdi; ret)
+
