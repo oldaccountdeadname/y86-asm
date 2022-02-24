@@ -1,5 +1,5 @@
-CC=cc
-CFLAGS=-D_POSIX_C_SOURCE=200809L -std=c17 -Wall -Werror -g
+CC?=cc
+CFLAGS+=-D_POSIX_C_SOURCE=200809L -std=c17 -Wall -Werror -g
 
 y86-asm: src/main.o src/driver.o src/asm.o src/err.o
 	$(CC) $(CFLAGS) src/main.o src/driver.o src/asm.o src/err.o -o y86-asm
