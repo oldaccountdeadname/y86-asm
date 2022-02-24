@@ -9,14 +9,10 @@
       version = "v0.0.1";
       src = ./.;
 
-      buildPhase = ''
-        make -C src/
-      '';
-
       installPhase = ''
         mkdir -p $out/bin
 
-        cp src/y86-asm $out/bin/y86-asm
+        cp y86-asm $out/bin/y86-asm
       '';
 
       installCheckPhase = ''
@@ -32,7 +28,7 @@
     # Put the binary on path so tests can be run unmodified.
     devShell.x86_64-linux = pkgs.mkShell {
       shellHook = ''
-        PATH="$PATH:$(pwd)/c"
+        PATH="$PATH:$(pwd)"
       '';
     };
   };
