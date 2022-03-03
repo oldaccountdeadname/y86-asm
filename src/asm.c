@@ -134,50 +134,72 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 
 	if (strncmp(in, "hlt", oplen) == 0) {
 		out->data.gen.op = O_HLT;
-	} else if (strncmp(in, "nop", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "nop", oplen) == 0) {
 		out->data.gen.op = O_NOP;
-	} else if (strncmp(in, "rrmovq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->data.gen.op = O_RRM;
 		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es);
 		read_reg(in, &out->data.gen.reg, "", 0, es);
-	} else if (strncmp(in, "irmovq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "irmovq", oplen) == 0) {
 		out->data.gen.op = O_IRM;
 		in = read_imdte(in + 6, &out->data.gen.imdte, ',', es);
 		out->data.gen.reg = RNONE << 4;
 		read_reg(in, &out->data.gen.reg, "", 0, es);
-	} else if (strncmp(in, "rmmovq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "rmmovq", oplen) == 0) {
 		out->data.gen.op = O_RMM;
 		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es);
 		in = read_imdte(in, &out->data.gen.imdte, '(', es);
 		in = read_reg(in, &out->data.gen.reg, ")", 0, es);
-	} else if (strncmp(in, "mrmovq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "mrmovq", oplen) == 0) {
 		out->data.gen.op = O_MRM;
 		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es);
 		in = read_reg(in, &out->data.gen.reg, "),", 1, es);
 		in = read_reg(in, &out->data.gen.reg, "\0", 0, es);
-	} else if (strncmp(in, "addq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "addq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_ADD;
 		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
 		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
-	} else if (strncmp(in, "subq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "subq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_SUB;
 		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
 		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
-	} else if (strncmp(in, "andq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "andq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_AND;
 		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
 		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
-	} else if (strncmp(in, "xorq", oplen) == 0) {
+	}
+
+	else if (strncmp(in, "xorq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_XOR;
 		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
 		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
-	} else if (in[0] == 'j') {
+	}
+
+	else if (in[0] == 'j') {
 		out->type = I_CTF;
 		out->data.ctf.op = O_JMP;
 		in = read_cond(in + 1, &out->data.ctf.op, "mp", es);
 		// TODO: handle labels.
 		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
-	} else {
+	}
+
+	else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
 		err_append(es, e);
