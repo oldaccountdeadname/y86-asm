@@ -32,6 +32,8 @@ static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
 static char *read_imdte(char *, unsigned long *, char, struct err_set *);
 static char *read_cond(char *, unsigned char *, const char *, struct err_set *);
 
+static char *read_reg_pair(char *, unsigned char *, struct err_set *);
+
 static char *consume_whitespace(char *);
 static void strip_comment(char *);
 
@@ -142,8 +144,7 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 
 	else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->data.gen.op = O_RRM;
-		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es);
-		read_reg(in, &out->data.gen.reg, "", 0, es);
+		read_reg_pair(in + 6, &out->data.gen.reg, es);
 	}
 
 	else if (strncmp(in, "irmovq", oplen) == 0) {
@@ -169,26 +170,22 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 
 	else if (strncmp(in, "addq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_ADD;
-		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
-		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es);
 	}
 
 	else if (strncmp(in, "subq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_SUB;
-		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
-		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es);
 	}
 
 	else if (strncmp(in, "andq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_AND;
-		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
-		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es);
 	}
 
 	else if (strncmp(in, "xorq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_XOR;
-		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
-		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es);
 	}
 
 	else if (in[0] == 'j') {
@@ -324,6 +321,14 @@ read_cond(char *in, unsigned char *x, const char *uncond, struct err_set *es)
 	}
 
 	return in + oplen;
+}
+
+static char *
+read_reg_pair(char *in, unsigned char *out, struct err_set *es)
+{
+	in = read_reg(in, out, ",", 1, es);
+	in = read_reg(in, out, "",  0, es);
+	return in;
 }
 
 static char *
