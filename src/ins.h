@@ -19,7 +19,7 @@ struct ctf_ins {
 
 struct ins {
 	enum {
-		I_GEN, I_CTF,
+		I_GEN, I_CTF
 	} type;
 	union {
 		struct gen_ins gen;
@@ -34,7 +34,7 @@ enum op {
 	O_IRM = 0x30, /* irmovq */
 	O_RMM = 0x40, /* rmmovq */
 	O_MRM = 0x50, /* mrmovq */
-	// ... (TODO)
+	O_ART = 0x60, /* OPq (arithmetic instruction) */
 	O_JMP = 0x70,
 	// ... (TODO)
 };
@@ -48,4 +48,11 @@ enum cond {
 	C_NE     = 0x04,
 	C_GE     = 0x05,
 	C_G      = 0x06,
+};
+
+enum arith {
+	A_ADD = 0x00,
+	A_SUB = 0x01,
+	A_AND = 0x02,
+	A_XOR = 0x03,
 };

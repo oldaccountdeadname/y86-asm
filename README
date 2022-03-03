@@ -26,13 +26,13 @@ The following instructions are implemented and tested:
   jne
   jge
   jg
-
-The following instructions are unimplemented:
-
   addq
   subq
   andq
   xorq
+
+The following instructions are unimplemented:
+
   cmovle
   cmovl
   cmove

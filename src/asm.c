@@ -155,6 +155,22 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es);
 		in = read_reg(in, &out->data.gen.reg, "),", 1, es);
 		in = read_reg(in, &out->data.gen.reg, "\0", 0, es);
+	} else if (strncmp(in, "addq", oplen) == 0) {
+		out->data.gen.op = O_ART | A_ADD;
+		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
+		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+	} else if (strncmp(in, "subq", oplen) == 0) {
+		out->data.gen.op = O_ART | A_SUB;
+		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
+		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+	} else if (strncmp(in, "andq", oplen) == 0) {
+		out->data.gen.op = O_ART | A_AND;
+		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
+		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
+	} else if (strncmp(in, "xorq", oplen) == 0) {
+		out->data.gen.op = O_ART | A_XOR;
+		in = read_reg(in + 4, &out->data.gen.reg, ",", 1, es);
+		in = read_reg(in, &out->data.gen.reg, ",", 0, es);
 	} else if (in[0] == 'j') {
 		out->type = I_CTF;
 		out->data.ctf.op = O_JMP;
