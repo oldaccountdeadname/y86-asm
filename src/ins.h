@@ -37,6 +37,8 @@ enum op {
 	O_ART = 0x60, /* OPq (arithmetic instruction) */
 	O_JMP = 0x70,
 	// ... (TODO)
+	O_RET = 0x90,
+	// ... (TODO)
 };
 
 /* Condition encodings used in jXX and cmovXX instructions. */

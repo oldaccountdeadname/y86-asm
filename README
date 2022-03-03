@@ -30,6 +30,7 @@ The following instructions are implemented and tested:
   subq
   andq
   xorq
+  ret
 
 The following instructions are unimplemented:
 
@@ -40,7 +41,6 @@ The following instructions are unimplemented:
   cmovge
   cmovg
   call
-  ret
   pushq
   popq
 

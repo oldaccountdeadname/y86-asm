@@ -142,6 +142,10 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		out->data.gen.op = O_NOP;
 	}
 
+	else if (strncmp(in, "ret", oplen) == 0) {
+		out->data.gen.op = O_RET;
+	}
+
 	else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->data.gen.op = O_RRM;
 		read_reg_pair(in + 6, &out->data.gen.reg, es);
