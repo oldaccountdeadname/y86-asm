@@ -50,7 +50,7 @@ help(int c)
 		"filenames as arguments to the CLI. If no output filename is specified with the\n"
 		"--output or -o flag, y86-asm writes to a.out.\n"
 		"\n"
-		"A maxiumum of 128 input paths may be provided.\n"
+		"A maximum of 128 input paths may be provided.\n"
 	);
 	exit(c);
 }
