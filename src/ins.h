@@ -39,7 +39,8 @@ enum op {
 	O_JMP = 0x70, /* jXX */
 	O_CLL = 0x80, /* call */
 	O_RET = 0x90, /* ret */
-	// ... (TODO)
+	O_PSH = 0xA0, /* pushq */
+	O_POP = 0xB0, /* popq */
 };
 
 /* Condition encodings used in jXX and cmovXX instructions. */

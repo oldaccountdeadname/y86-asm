@@ -11,38 +11,7 @@ big-endian machines aren't supported (good luck finding one of those, though!).
 current status
 --------------
 
-The following instructions are implemented and tested:
-
-  halt
-  nop
-  rrmovq
-  irmovq
-  rmmovq
-  mrmovq
-  jmp
-  jle
-  jl
-  je
-  jne
-  jge
-  jg
-  addq
-  subq
-  andq
-  xorq
-  cmovle
-  cmovl
-  cmove
-  cmovne
-  cmovge
-  cmovg
-  call
-  ret
-
-The following instructions are unimplemented:
-
-  pushq
-  popq
+All instructions are implemented and tested.
 
 The following features are unimplemented:
 

@@ -214,6 +214,20 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		read_reg_pair(in, &out->data.gen.reg, es);
 	}
 
+	else if (strncmp(in, "pushq", oplen) == 0) {
+		out->type = I_GEN;
+		out->data.gen.op = O_PSH;
+		out->data.gen.reg = 0x0f;
+		read_reg(in + 5, &out->data.gen.reg, "", 1, es);
+	}
+
+	else if (strncmp(in, "popq", oplen) == 0) {
+		out->type = I_GEN;
+		out->data.gen.op = O_POP;
+		out->data.gen.reg = 0x0f;
+		read_reg(in + 4, &out->data.gen.reg, "", 1, es);
+	}
+
 	else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
