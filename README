@@ -36,11 +36,11 @@ The following instructions are implemented and tested:
   cmovne
   cmovge
   cmovg
+  call
   ret
 
 The following instructions are unimplemented:
 
-  call
   pushq
   popq
 
