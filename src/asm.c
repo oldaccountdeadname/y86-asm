@@ -303,7 +303,7 @@ read_cond(char *in, unsigned char *x, const char *uncond, struct err_set *es)
 
 	// Note that order of comparisons is important here. (Matching is done
 	// greedily.)
-	if (strncmp(in, uncond, oplen) == 0)
+	if (uncond && strncmp(in, uncond, oplen) == 0)
 		*x |= C_UNCOND;
 	else if (strncmp(in, "l", oplen) == 0)
 		*x |= C_L;
