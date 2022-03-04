@@ -51,10 +51,13 @@ err_free_asc(struct err *e)
 	switch (e->type) {
 	case RE_NOINS:
 		free(e->data.ins);
+		break;
 	case RE_NOREG:
 		free(e->data.reg);
+		break;
 	case RE_BADCOND:
 		free(e->data.cond);
+		break;
 	default:
 		break;
 	}
