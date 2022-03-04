@@ -60,7 +60,7 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 	struct ctf_ins *c;
 	char *pad = ""; // a singe 0 byte.
 
-	for (int i = 0; i < u->len; i++) {
+	for (size_t i = 0; i < u->len; i++) {
 		x = &u->ins[i];
 		switch (x->type) {
 		case I_GEN:

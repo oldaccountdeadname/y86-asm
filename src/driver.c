@@ -41,7 +41,7 @@ make(const struct run_conf *c)
 void
 free_err_set(struct err_set *es)
 {
-	for (int i = 0; i < es->len; i++)
+	for (size_t i = 0; i < es->len; i++)
 		err_free_asc(&es->e[i]);
 
 	free(es->e);

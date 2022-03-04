@@ -72,7 +72,8 @@ parse_args(int argc, char **argv, char **inputs, char **output, int max_infs)
 			on_out = 1;
 		} else if (strcmp(arg, "--help") == 0) {
 			return -1;
-		} else inputs[next_in++] = arg;
+		} else if (next_in < max_infs)
+			inputs[next_in++] = arg;
 	}
 
 	return argc < 2 ? -1 : next_in;
