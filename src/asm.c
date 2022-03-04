@@ -200,6 +200,13 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
 	}
 
+	else if (strncmp(in, "cmov", oplen - 2) == 0) {
+		out->type = I_GEN;
+		out->data.gen.op = O_CMV;
+		in = read_cond(in + 4, &out->data.gen.op, NULL, es);
+		read_reg_pair(in, &out->data.gen.reg, es);
+	}
+
 	else {
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);

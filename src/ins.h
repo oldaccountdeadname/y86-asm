@@ -19,7 +19,7 @@ struct ctf_ins {
 
 struct ins {
 	enum {
-		I_GEN, I_CTF
+		I_GEN, I_CTF,
 	} type;
 	union {
 		struct gen_ins gen;
@@ -31,6 +31,7 @@ enum op {
 	O_HLT = 0x00, /* hlt */
 	O_NOP = 0x10, /* nop */
 	O_RRM = 0x20, /* rrmovq */
+	O_CMV = 0x20, /* cmovXX */
 	O_IRM = 0x30, /* irmovq */
 	O_RMM = 0x40, /* rmmovq */
 	O_MRM = 0x50, /* mrmovq */

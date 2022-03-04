@@ -30,16 +30,16 @@ The following instructions are implemented and tested:
   subq
   andq
   xorq
-  ret
-
-The following instructions are unimplemented:
-
   cmovle
   cmovl
   cmove
   cmovne
   cmovge
   cmovg
+  ret
+
+The following instructions are unimplemented:
+
   call
   pushq
   popq
