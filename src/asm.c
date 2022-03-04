@@ -200,6 +200,13 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
 	}
 
+	else if (strncmp(in, "call", oplen) == 0) {
+		out->type = I_CTF;
+		out->data.ctf.op = O_CLL;
+		// TODO: handle labels.
+		read_imdte(in + 4, &out->data.ctf.dest.adr, '\0', es);
+	}
+
 	else if (strncmp(in, "cmov", oplen - 2) == 0) {
 		out->type = I_GEN;
 		out->data.gen.op = O_CMV;

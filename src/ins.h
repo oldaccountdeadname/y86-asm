@@ -36,9 +36,9 @@ enum op {
 	O_RMM = 0x40, /* rmmovq */
 	O_MRM = 0x50, /* mrmovq */
 	O_ART = 0x60, /* OPq (arithmetic instruction) */
-	O_JMP = 0x70,
-	// ... (TODO)
-	O_RET = 0x90,
+	O_JMP = 0x70, /* jXX */
+	O_CLL = 0x80, /* call */
+	O_RET = 0x90, /* ret */
 	// ... (TODO)
 };
 
