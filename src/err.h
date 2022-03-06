@@ -4,8 +4,11 @@ struct err {
 		RE_NOERR, RE_FNOOPEN, RE_NOINS, RE_NOREG, RE_BADINT, RE_BADCOND,
 		RE_NEGATIVE_JMP,
 	} type;
+
+	int ln;
+	const char *path;
+
 	union {
-		const char *path; /* borrowed. */
 		char *ins; /* owned. */
 		char *reg; /* owned. */
 		char *bint; /* owned. */

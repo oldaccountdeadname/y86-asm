@@ -21,30 +21,29 @@ err_append(struct err_set *es, struct err e)
 void
 err_disp(const struct err *e)
 {
-	fprintf(stderr, "\033[1;31mError:\033[0m ");
+	fprintf(stderr, "\033[1;31m%s:%d\033[0m | ", e->path, e->ln);
 	switch (e->type) {
 	case RE_FNOOPEN:
-		fprintf(stderr, "Couldn't open file %s.\033[0m\n", e->data.path);
-		fprintf(stderr, "       \033[0;33mDoes it exist with proper permissions?\n");
+		fprintf(stderr, "Couldn't open file. Does it exist (with proper permissions)?");
 		break;
 	case RE_NOINS:
-		fprintf(stderr, "Didn't recognize instruction %s.\033[0m\n", e->data.ins);
+		fprintf(stderr, "Didn't recognize instruction %s.", e->data.ins);
 		break;
 	case RE_NOREG:
-		fprintf(stderr, "Didn't recognize register %s.\033[0m\n", e->data.reg);
+		fprintf(stderr, "Didn't recognize register %s.", e->data.reg);
 		break;
 	case RE_BADINT:
-		fprintf(stderr, "Expected integer, got %s.\033[0m\n", e->data.bint);
+		fprintf(stderr, "Expected integer, got %s.", e->data.bint);
 		break;
 	case RE_BADCOND:
-		fprintf(stderr, "Condition '%s' (in jump or move) was not understood.\033[0m\n", e->data.cond);
+		fprintf(stderr, "Condition '%s' (in jump or move) was not understood.", e->data.cond);
 	case RE_NEGATIVE_JMP:
-		fprintf(stderr, "Given jump target was negative.\033[0m\n");
+		fprintf(stderr, "Given jump target was negative.");
 	case RE_NOERR:
 		break;
 	}
 
-	fprintf(stderr, "\033[0m");
+	fprintf(stderr, "\033[0m\n");
 }
 
 void

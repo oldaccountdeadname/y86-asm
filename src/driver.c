@@ -21,9 +21,10 @@ make(const struct run_conf *c)
 	o = fopen(c->outputf, "w");
 	if (!o) {
 		e.type = RE_FNOOPEN;
-		e.data.path = c->outputf;
+		e.path = c->outputf;
 		err_append(es, e);
 	}
+
 	units = assemble(c, es);
 
 	for (int i = 0; i < c->input_num; i++) {
@@ -62,11 +63,14 @@ assemble(const struct run_conf *c, struct err_set *es)
 
 		if (!in) {
 			err.type = RE_FNOOPEN;
-			err.data.path = c->inputs[i];
+
+			err.path = c->inputs[i];
+			err.ln = 0;
+
 			err_append(es, err);
 			l[i] = NULL;
 		} else {
-			l[i] = asm_unit_parse(in, es);
+			l[i] = asm_unit_parse(in, es, c->inputs[i]);
 			fclose(in);
 		}
 	}

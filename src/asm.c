@@ -21,12 +21,14 @@ struct asm_unit {
 	size_t len;
 };
 
-static void asmf(struct asm_unit *, FILE *, struct err_set *);
+static void asmf(struct asm_unit *, FILE *, struct err_set *, const char *);
 
 /* Consume the first instruction read into the given gen_ins struct pointer.
  * Errors are added to given error set. If no errors occured, 0 is returned,
- * otherwise, a non-zero value is returned. */
-static int read_ins(char *, struct ins *, struct err_set *);
+ * otherwise, a non-zero value is returned. Additionally, a template error is
+ * passed, which is cloned and overwritten for each error. (Useful for recording
+ * line numbers, file paths.) */
+static int read_ins(char *, struct ins *, struct err_set *, struct err);
 
 static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
 static char *read_imdte(char *, long *, char, struct err_set *);
@@ -38,7 +40,7 @@ static char *consume_whitespace(char *);
 static void strip_comment(char *);
 
 struct asm_unit *
-asm_unit_parse(FILE *restrict f, struct err_set *es)
+asm_unit_parse(FILE *restrict f, struct err_set *es, const char *path)
 {
 	struct asm_unit *x = NULL;
 
@@ -47,7 +49,7 @@ asm_unit_parse(FILE *restrict f, struct err_set *es)
 	x->ins = malloc(x->cap * sizeof(struct ins));
 	x->len = 0;
 
-	asmf(x, f, es);
+	asmf(x, f, es, path);
 
 	return x;
 }
@@ -89,21 +91,25 @@ asm_destroy_unit(struct asm_unit *x)
 }
 
 static void
-asmf(struct asm_unit *u, FILE *f, struct err_set *es)
+asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 {
 	struct ins g;
 	char *ln;
 	ssize_t l;
 	size_t c;
+	struct err e;
 
 	c = l = 0;
 	ln = NULL;
+
+	e.ln = 1;
+	e.path = path;
 
 	while ((l = getline(&ln, &c, f)) > 0) {
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
-		if (read_ins(ln, &g, es) == 0) {
+		if (read_ins(ln, &g, es, e) == 0) {
 			if (u->len + 1 >= u->cap) {
 				u->cap *= 2;
 				u->ins = realloc(
@@ -113,19 +119,18 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es)
 			// Might as well blow up here if allocation failed.
 			u->ins[u->len++] = g;
 		}
+
+		e.ln++;
 	}
 
 	if (ln) free(ln);
 }
 
 static int
-read_ins(char *in, struct ins *out, struct err_set *es)
+read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 {
 	size_t oplen = 0;
 	int ret = 0;
-
-	struct err e;
-	e.type = RE_NOERR;
 
 	out->type = I_GEN;
 	out->data.gen.op = 0;
