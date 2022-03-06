@@ -1,6 +1,10 @@
 struct dest {
 	const char *label; /* May be NULL. */
-	unsigned long adr; /* Must be used if label is NULL. */
+
+	/* adr must be used if label is NULL. Pedantically, this could/should be
+	 * unsigned, but parsing with strtol(3) makes that a mild incovenience
+	 * for no realistic use case. */
+	long adr;
 };
 
 /* A structure storing the general form of most instructions. Control flow
@@ -8,7 +12,7 @@ struct dest {
 struct gen_ins {
 	unsigned char op; /* A one-byte opcode. */
 	unsigned char reg; /* Store both source and dest registers in a single byte. */
-	unsigned long imdte; /* 8-byte immediate. */
+	long imdte; /* 8-byte immediate. */
 };
 
 /* A structure storing metadata of control flow instructions jXX and call. */

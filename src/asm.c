@@ -29,7 +29,7 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *);
 static int read_ins(char *, struct ins *, struct err_set *);
 
 static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
-static char *read_imdte(char *, unsigned long *, char, struct err_set *);
+static char *read_imdte(char *, long *, char, struct err_set *);
 static char *read_cond(char *, unsigned char *, const char *, struct err_set *);
 
 static char *read_reg_pair(char *, unsigned char *, struct err_set *);
@@ -122,6 +122,8 @@ static int
 read_ins(char *in, struct ins *out, struct err_set *es)
 {
 	size_t oplen = 0;
+	int ret = 0;
+
 	struct err e;
 	e.type = RE_NOERR;
 
@@ -198,6 +200,11 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		in = read_cond(in + 1, &out->data.ctf.op, "mp", es);
 		// TODO: handle labels.
 		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
+		if (out->data.ctf.dest.adr < 0) {
+			e.type = RE_NEGATIVE_JMP;
+			err_append(es, e);
+			ret = 1;
+		}
 	}
 
 	else if (strncmp(in, "call", oplen) == 0) {
@@ -232,10 +239,10 @@ read_ins(char *in, struct ins *out, struct err_set *es)
 		e.type = RE_NOINS;
 		e.data.ins = strndup(in, oplen);
 		err_append(es, e);
-		return 1;
+		ret = 1;
 	}
 
-	return 0;
+	return ret;
 }
 
 static char *
@@ -297,7 +304,7 @@ read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es)
 }
 
 static char *
-read_imdte(char *in, unsigned long *x, char term, struct err_set *es)
+read_imdte(char *in, long *x, char term, struct err_set *es)
 {
 	size_t len = 0;
 	struct err e;

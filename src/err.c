@@ -38,6 +38,8 @@ err_disp(const struct err *e)
 		break;
 	case RE_BADCOND:
 		fprintf(stderr, "Condition '%s' (in jump or move) was not understood.\033[0m\n", e->data.cond);
+	case RE_NEGATIVE_JMP:
+		fprintf(stderr, "Given jump target was negative.\033[0m\n");
 	case RE_NOERR:
 		break;
 	}

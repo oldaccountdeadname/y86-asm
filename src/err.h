@@ -2,6 +2,7 @@
 struct err {
 	enum {
 		RE_NOERR, RE_FNOOPEN, RE_NOINS, RE_NOREG, RE_BADINT, RE_BADCOND,
+		RE_NEGATIVE_JMP,
 	} type;
 	union {
 		const char *path; /* borrowed. */
