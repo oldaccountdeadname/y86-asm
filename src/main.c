@@ -7,7 +7,7 @@
 
 static void help(int);
 
-/* Parse arguments into given inputs. Returns -1 if parsing has falied, or the
+/* Parse arguments into given inputs. Returns -1 if parsing has failed, or the
  * number of input filenames parsed otherwise. */
 static int parse_args(
 	int argc, char **argv, char **inputs, char **output, int max_infs
