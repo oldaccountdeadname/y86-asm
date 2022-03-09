@@ -102,10 +102,12 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 	c = l = 0;
 	ln = NULL;
 
-	e.ln = 1;
+	e.ln = 0;
 	e.path = path;
 
 	while ((l = getline(&ln, &c, f)) > 0) {
+		e.ln++;
+
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
@@ -119,8 +121,6 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 			// Might as well blow up here if allocation failed.
 			u->ins[u->len++] = g;
 		}
-
-		e.ln++;
 	}
 
 	if (ln) free(ln);
