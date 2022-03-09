@@ -5,7 +5,13 @@ An assembler and linker for the y86_64 instruction set, as described in
 "Computer Systems" by Randal E. Bryant and David R. O'Hallaron.
 
 Note that the immediate values are serialized with host-endianness, so
-big-endian machines aren't supported (good luck finding one of those, though!).
+big-endian machines aren't supported.
+
+
+building
+--------
+
+Run `make`. It'll probably work. If it doesn't, try using GCC and GNU Make.
 
 
 current status
