@@ -31,7 +31,8 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *, const char *);
 static int read_ins(char *, struct ins *, struct err_set *, struct err);
 
 static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
-static char *read_imdte(char *, long *, char, struct err_set *);
+static char *read_dest(char *, struct dest *, struct err_set *, struct err);
+static char *read_imdte(char *, long *, char, struct err_set *, struct err);
 static char *read_cond(char *, unsigned char *, const char *, struct err_set *);
 
 static char *read_reg_pair(char *, unsigned char *, struct err_set *);
@@ -160,7 +161,7 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 
 	else if (strncmp(in, "irmovq", oplen) == 0) {
 		out->data.gen.op = O_IRM;
-		in = read_imdte(in + 6, &out->data.gen.imdte, ',', es);
+		in = read_imdte(in + 6, &out->data.gen.imdte, ',', es, e);
 		out->data.gen.reg = RNONE << 4;
 		read_reg(in, &out->data.gen.reg, "", 0, es);
 	}
@@ -168,13 +169,13 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 	else if (strncmp(in, "rmmovq", oplen) == 0) {
 		out->data.gen.op = O_RMM;
 		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es);
-		in = read_imdte(in, &out->data.gen.imdte, '(', es);
+		in = read_imdte(in, &out->data.gen.imdte, '(', es, e);
 		in = read_reg(in, &out->data.gen.reg, ")", 0, es);
 	}
 
 	else if (strncmp(in, "mrmovq", oplen) == 0) {
 		out->data.gen.op = O_MRM;
-		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es);
+		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es, e);
 		in = read_reg(in, &out->data.gen.reg, "),", 1, es);
 		in = read_reg(in, &out->data.gen.reg, "\0", 0, es);
 	}
@@ -203,20 +204,13 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 		out->type = I_CTF;
 		out->data.ctf.op = O_JMP;
 		in = read_cond(in + 1, &out->data.ctf.op, "mp", es);
-		// TODO: handle labels.
-		in = read_imdte(in, &out->data.ctf.dest.adr, '\0', es);
-		if (out->data.ctf.dest.adr < 0) {
-			e.type = RE_NEGATIVE_JMP;
-			err_append(es, e);
-			ret = 1;
-		}
+		in = read_dest(in, &out->data.ctf.dest, es, e);
 	}
 
 	else if (strncmp(in, "call", oplen) == 0) {
 		out->type = I_CTF;
 		out->data.ctf.op = O_CLL;
-		// TODO: handle labels.
-		read_imdte(in + 4, &out->data.ctf.dest.adr, '\0', es);
+		in = read_dest(in + 4, &out->data.ctf.dest, es, e);
 	}
 
 	else if (strncmp(in, "cmov", oplen - 2) == 0) {
@@ -309,10 +303,23 @@ read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es)
 }
 
 static char *
-read_imdte(char *in, long *x, char term, struct err_set *es)
+read_dest(char *in, struct dest *x, struct err_set *es, struct err e)
+{
+	// TODO: handle labels.
+	in = read_imdte(in, &x->adr, '\0', es, e);
+
+	if (x->adr < 0) {
+		e.type = RE_NEGATIVE_JMP;
+		err_append(es, e);
+	}
+
+	return in;
+}
+
+static char *
+read_imdte(char *in, long *x, char term, struct err_set *es, struct err e)
 {
 	size_t len = 0;
-	struct err e;
 	char *end;
 	in = consume_whitespace(in);
 
