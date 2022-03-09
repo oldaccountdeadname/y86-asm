@@ -95,7 +95,7 @@ static void
 asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 {
 	struct ins g;
-	char *ln;
+	char *ln, *in;
 	ssize_t l;
 	size_t c;
 	struct err e;
@@ -112,7 +112,10 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 		ln[--l] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
-		if (read_ins(ln, &g, es, e) == 0) {
+		in = consume_whitespace(ln);
+		strip_comment(in);
+
+		if (read_ins(in, &g, es, e) == 0) {
 			if (u->len + 1 >= u->cap) {
 				u->cap *= 2;
 				u->ins = realloc(
@@ -138,8 +141,6 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 	out->data.gen.reg = 0x00;
 	out->data.gen.imdte = 0;
 
-	in = consume_whitespace(in);
-	strip_comment(in);
 	for (; in[oplen] != '\0' && !isspace(in[oplen]); oplen++);
 
 	if (strncmp(in, "hlt", oplen) == 0) {
