@@ -9,7 +9,7 @@
 #include "asm.h"
 #include "ins.h"
 #include "register.h"
-
+#include "symtab.h"
 
 #define INIT_BUF_SIZE 64
 
@@ -83,6 +83,7 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 	char *ln, *in;
 	ssize_t l;
 	size_t c;
+	long addr;
 	struct err e;
 
 	c = l = 0;
@@ -91,24 +92,37 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 	e.ln = 0;
 	e.path = path;
 
+	u->st = NULL;
+
+	addr = 0;
 	while ((l = getline(&ln, &c, f)) > 0) {
 		e.ln++;
 
-		ln[--l] = '\0'; // null-terminate where newline is
+		ln[l - 1] = '\0'; // null-terminate where newline is
 		if (ln[0] == '\0') continue;
 
 		in = consume_whitespace(ln);
 		strip_comment(in);
+		l = strlen(in);
 
-		if (read_ins(in, &g, es, e) == 0) {
-			if (u->len + 1 >= u->cap) {
-				u->cap *= 2;
-				u->ins = realloc(
-					u->ins, u->cap * sizeof(struct ins));
+		if (!isdigit(ln[0]) && ln[l - 1] == ':') {
+			// We found a label. Let's add its address to the symbol
+			// table.
+			ln[l - 1] = '\0';
+			u->st = st_append(u->st, ln, addr);
+		} else {
+			if (read_ins(in, &g, es, e) == 0) {
+				if (u->len + 1 >= u->cap) {
+					u->cap *= 2;
+					u->ins = realloc(u->ins,
+						u->cap * sizeof(struct ins));
+				}
+
+				// Might as well blow up here if allocation failed.
+				u->ins[u->len++] = g;
 			}
 
-			// Might as well blow up here if allocation failed.
-			u->ins[u->len++] = g;
+			addr += 10;
 		}
 	}
 
@@ -291,16 +305,29 @@ read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es,
 static char *
 read_dest(char *in, struct dest *x, struct err_set *es, struct err e)
 {
-	// TODO: handle labels.
-	in = read_imdte(in, &x->adr, '\0', es, e);
+	in = consume_whitespace(in);
 
 	// Let's zero dest for predictible behavior if linking goes
 	// catastrophically wrong.
 	x->adr = 0;
 
-	if (x->adr < 0) {
-		e.type = RE_NEGATIVE_JMP;
-		err_append(es, e);
+	if (!isdigit(*in) && *in != '-') {
+		// if a target doesn't look like a number, parse it as a label.
+		// Note that we're looking to see any number, not necessarily
+		// a positive number.
+		size_t len = 0;
+		for (char *c = in; *c != '\0'; c++, len++)
+			if (isspace(*c)) break;
+
+		x->label = strndup(in, len);
+		in += len;
+	} else {
+		in = read_imdte(in, &x->adr, '\0', es, e);
+
+		if (x->adr < 0) {
+			e.type = RE_NEGATIVE_JMP;
+			err_append(es, e);
+		}
 	}
 
 	return in;
