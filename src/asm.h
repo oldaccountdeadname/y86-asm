@@ -1,6 +1,12 @@
 // stddef and err.h must be included prior to this header file.
 
-struct asm_unit;
+struct asm_unit {
+	struct symtab *st;
+
+	struct ins *ins;
+	size_t cap;
+	size_t len;
+};
 
 /* Parse a given FILE, recording errors in the given err_set, with the given
  * string borrowed as the filename. (The given string must live as long as the

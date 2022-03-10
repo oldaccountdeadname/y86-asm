@@ -13,14 +13,6 @@
 
 #define INIT_BUF_SIZE 64
 
-struct asm_unit {
-	// TODO: symbol table trie
-
-	struct ins *ins;
-	size_t cap;
-	size_t len;
-};
-
 static void asmf(struct asm_unit *, FILE *, struct err_set *, const char *);
 
 /* Consume the first instruction read into the given gen_ins struct pointer.
