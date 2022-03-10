@@ -314,6 +314,10 @@ read_imdte(char *in, long *x, char term, struct err_set *es, struct err e)
 	if (*end == term) {
 		len = end - in + 1;
 	} else if (*end != '\0' && !isspace(*end)) {
+		for (; in[len] != '\0'; len++)
+			if (isspace(in[len]) || in[len] == term)
+				break;
+
 		e.type = RE_BADINT;
 		e.data.bint = strndup(in, len);
 		err_append(es, e);
