@@ -22,12 +22,12 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *, const char *);
  * line numbers, file paths.) */
 static int read_ins(char *, struct ins *, struct err_set *, struct err);
 
-static char *read_reg(char *, unsigned char *, char *, int, struct err_set *);
+static char *read_reg(char *, unsigned char *, char *, int, struct err_set *, struct err);
 static char *read_dest(char *, struct dest *, struct err_set *, struct err);
 static char *read_imdte(char *, long *, char, struct err_set *, struct err);
 static char *read_cond(char *, unsigned char *, const char *, struct err_set *);
 
-static char *read_reg_pair(char *, unsigned char *, struct err_set *);
+static char *read_reg_pair(char *, unsigned char *, struct err_set *, struct err);
 
 static char *consume_whitespace(char *);
 static void strip_comment(char *);
@@ -142,48 +142,48 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 
 	else if (strncmp(in, "rrmovq", oplen) == 0) {
 		out->data.gen.op = O_RRM;
-		read_reg_pair(in + 6, &out->data.gen.reg, es);
+		read_reg_pair(in + 6, &out->data.gen.reg, es, e);
 	}
 
 	else if (strncmp(in, "irmovq", oplen) == 0) {
 		out->data.gen.op = O_IRM;
 		in = read_imdte(in + 6, &out->data.gen.imdte, ',', es, e);
 		out->data.gen.reg = RNONE << 4;
-		read_reg(in, &out->data.gen.reg, "", 0, es);
+		read_reg(in, &out->data.gen.reg, "", 0, es, e);
 	}
 
 	else if (strncmp(in, "rmmovq", oplen) == 0) {
 		out->data.gen.op = O_RMM;
-		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es);
+		in = read_reg(in + 6, &out->data.gen.reg, ",", 1, es, e);
 		in = read_imdte(in, &out->data.gen.imdte, '(', es, e);
-		in = read_reg(in, &out->data.gen.reg, ")", 0, es);
+		in = read_reg(in, &out->data.gen.reg, ")", 0, es, e);
 	}
 
 	else if (strncmp(in, "mrmovq", oplen) == 0) {
 		out->data.gen.op = O_MRM;
 		in = read_imdte(in + 6, &out->data.gen.imdte, '(', es, e);
-		in = read_reg(in, &out->data.gen.reg, "),", 1, es);
-		in = read_reg(in, &out->data.gen.reg, "\0", 0, es);
+		in = read_reg(in, &out->data.gen.reg, "),", 1, es, e);
+		in = read_reg(in, &out->data.gen.reg, "\0", 0, es, e);
 	}
 
 	else if (strncmp(in, "addq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_ADD;
-		read_reg_pair(in + 4, &out->data.gen.reg, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es, e);
 	}
 
 	else if (strncmp(in, "subq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_SUB;
-		read_reg_pair(in + 4, &out->data.gen.reg, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es, e);
 	}
 
 	else if (strncmp(in, "andq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_AND;
-		read_reg_pair(in + 4, &out->data.gen.reg, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es, e);
 	}
 
 	else if (strncmp(in, "xorq", oplen) == 0) {
 		out->data.gen.op = O_ART | A_XOR;
-		read_reg_pair(in + 4, &out->data.gen.reg, es);
+		read_reg_pair(in + 4, &out->data.gen.reg, es, e);
 	}
 
 	else if (in[0] == 'j') {
@@ -203,21 +203,21 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 		out->type = I_GEN;
 		out->data.gen.op = O_CMV;
 		in = read_cond(in + 4, &out->data.gen.op, NULL, es);
-		read_reg_pair(in, &out->data.gen.reg, es);
+		read_reg_pair(in, &out->data.gen.reg, es, e);
 	}
 
 	else if (strncmp(in, "pushq", oplen) == 0) {
 		out->type = I_GEN;
 		out->data.gen.op = O_PSH;
 		out->data.gen.reg = 0x0f;
-		read_reg(in + 5, &out->data.gen.reg, "", 1, es);
+		read_reg(in + 5, &out->data.gen.reg, "", 1, es, e);
 	}
 
 	else if (strncmp(in, "popq", oplen) == 0) {
 		out->type = I_GEN;
 		out->data.gen.op = O_POP;
 		out->data.gen.reg = 0x0f;
-		read_reg(in + 4, &out->data.gen.reg, "", 1, es);
+		read_reg(in + 4, &out->data.gen.reg, "", 1, es, e);
 	}
 
 	else {
@@ -231,10 +231,10 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 }
 
 static char *
-read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es)
+read_reg(char *in, unsigned char *r, char *term, int upper, struct err_set *es,
+	struct err e)
 {
 	char *c;
-	struct err e;
 	size_t oplen, padding;
 	in = consume_whitespace(in);
 
@@ -365,10 +365,10 @@ read_cond(char *in, unsigned char *x, const char *uncond, struct err_set *es)
 }
 
 static char *
-read_reg_pair(char *in, unsigned char *out, struct err_set *es)
+read_reg_pair(char *in, unsigned char *out, struct err_set *es, struct err e)
 {
-	in = read_reg(in, out, ",", 1, es);
-	in = read_reg(in, out, "",  0, es);
+	in = read_reg(in, out, ",", 1, es, e);
+	in = read_reg(in, out, "",  0, es, e);
 	return in;
 }
 
