@@ -30,7 +30,8 @@ make(const struct run_conf *c)
 	for (int i = 0; i < c->input_num; i++) {
 		if (units[i]) {
 			asm_unit_write(o, units[i]);
-			asm_destroy_unit(units[i]);
+			free(units[i]->ins);
+			free(units[i]);
 		}
 	}
 

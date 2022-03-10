@@ -84,13 +84,6 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 	}
 }
 
-void
-asm_destroy_unit(struct asm_unit *x)
-{
-	if (x->ins) free (x->ins);
-	free(x);
-}
-
 static void
 asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 {
