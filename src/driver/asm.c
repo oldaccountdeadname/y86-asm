@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "err.h"
+#include "../err.h"
 #include "asm.h"
-#include "ins.h"
-#include "register.h"
-#include "symtab.h"
+#include "../ins.h"
+#include "../register.h"
+#include "../symtab.h"
 
 #define INIT_BUF_SIZE 64
 

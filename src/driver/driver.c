@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "err.h"
-#include "driver.h"
+#include "../err.h"
+#include "../driver.h"
 #include "asm.h"
 
 static struct asm_unit **assemble(const struct run_conf *, struct err_set *);
