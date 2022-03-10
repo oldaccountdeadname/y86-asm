@@ -294,6 +294,10 @@ read_dest(char *in, struct dest *x, struct err_set *es, struct err e)
 	// TODO: handle labels.
 	in = read_imdte(in, &x->adr, '\0', es, e);
 
+	// Let's zero dest for predictible behavior if linking goes
+	// catastrophically wrong.
+	x->adr = 0;
+
 	if (x->adr < 0) {
 		e.type = RE_NEGATIVE_JMP;
 		err_append(es, e);
