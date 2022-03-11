@@ -1,5 +1,5 @@
 struct dest {
-	const char *label; /* May be NULL. */
+	char *label; /* May be NULL. */
 
 	/* adr must be used if label is NULL. Pedantically, this could/should be
 	 * unsigned, but parsing with strtol(3) makes that a mild incovenience

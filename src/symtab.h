@@ -15,4 +15,7 @@ struct symtab {
 	char x;
 };
 
-struct symtab *st_append(struct symtab *, const char *, long addr);
+long st_lookup(const struct symtab *, const char *);
+struct symtab *st_append(struct symtab *, const char *, long);
+struct symtab *st_merge(struct symtab *, struct symtab *);
+void st_free(struct symtab *);

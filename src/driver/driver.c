@@ -3,16 +3,21 @@
 
 #include "../err.h"
 #include "../driver.h"
+#include "../symtab.h"
+#include "../ins.h"
 #include "asm.h"
 
 static struct asm_unit **assemble(const struct run_conf *, struct err_set *);
+static void link(struct asm_unit **, size_t, const struct symtab *, struct err_set *);
 static struct err_set *alloc_err_set(void);
+static struct symtab *make_global_st(struct asm_unit **, size_t);
 
 struct err_set *
 make(const struct run_conf *c)
 {
 	struct asm_unit **units;
 	struct err_set *es;
+	struct symtab *gst;
 	struct err e;
 	FILE *o;
 
@@ -25,7 +30,13 @@ make(const struct run_conf *c)
 		err_append(es, e);
 	}
 
+
 	units = assemble(c, es);
+
+	gst = make_global_st(units, c->input_num);
+
+	if (gst)
+		link(units, c->input_num, gst, es);
 
 	for (int i = 0; i < c->input_num; i++) {
 		if (units[i]) {
@@ -37,6 +48,7 @@ make(const struct run_conf *c)
 
 	fclose(o);
 	free(units);
+	st_free(gst);
 	return es;
 }
 
@@ -79,6 +91,36 @@ assemble(const struct run_conf *c, struct err_set *es)
 	return l;
 }
 
+static void
+link(struct asm_unit **units, size_t n, const struct symtab *st, struct err_set *es)
+{
+	struct asm_unit *u;
+	struct ins *ins;
+	long adr;
+	struct err e;
+	e.path = NULL;
+
+	for (size_t ui = 0; ui < n; ui++) { // Iterate over units.
+		u = units[ui];
+		ins = u->ins;
+
+		for (size_t ii = 0; ii < u->len; ii++) { // Iterate over instructions.
+			if (ins[ii].type != I_CTF || !ins[ii].data.ctf.dest.label)
+				continue;
+
+			adr = st_lookup(st, ins[ii].data.ctf.dest.label);
+
+			if (adr >= 0)
+				ins[ii].data.ctf.dest.adr = adr;
+			else
+				err_append(es, e);
+
+			free(ins[ii].data.ctf.dest.label);
+			ins[ii].data.ctf.dest.label = NULL;
+		}
+	}
+}
+
 static struct err_set *
 alloc_err_set(void)
 {
@@ -89,4 +131,21 @@ alloc_err_set(void)
 	es->cap = 1;
 
 	return es;
+}
+
+static struct symtab *
+make_global_st(struct asm_unit **units, size_t len)
+{
+	struct symtab *gst;
+
+	if (!units[0]) return NULL;
+
+	gst = units[0]->st;
+
+	// This looks very loop-unrolling-ammenable: try that if performance
+	// ever becomes an issue.
+	for (size_t i = 1; i < len; i++)
+		st_merge(gst, units[i]->st);
+
+	return gst;
 }

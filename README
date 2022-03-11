@@ -21,7 +21,6 @@ All instructions are implemented and tested.
 
 The following features are unimplemented:
 
-  labels
   linker directives
   multiple instructions/line
       (i.e., popq %rdi; ret)
