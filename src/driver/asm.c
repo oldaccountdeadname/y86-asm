@@ -57,6 +57,7 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 	struct ctf_ins *c;
 	char *pad = ""; // a singe 0 byte.
 	long written = 0;
+	long a, aln;
 
 	for (size_t i = 0; i < u->len; i++) {
 		x = &u->ins[i];
@@ -80,6 +81,12 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 		case I_DIR:
 			switch (x->data.dir.dir) {
 			case DIR_ALN:
+				a = x->data.dir.x;
+				aln = (written / a) * a + a - written;
+				for (long i = 0; i < aln; i++)
+					fwrite(pad, 1, 1, o);
+
+				written += aln;
 				break;
 			case DIR_POS:
 				if (written > x->data.dir.x)

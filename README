@@ -21,12 +21,6 @@ All instructions are implemented and tested.
 
 The following features are unimplemented:
 
-  linker directives:
-
-    - [x] quad
-    - [ ] pos
-    - [ ] align
-
   multiple instructions/line
       (i.e., popq %rdi; ret)
 
