@@ -29,6 +29,8 @@ struct ins {
 		struct gen_ins gen;
 		struct ctf_ins ctf;
 	} data;
+
+	size_t ln;
 };
 
 enum op {

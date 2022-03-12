@@ -41,6 +41,7 @@ asm_unit_parse(FILE *restrict f, struct err_set *es, const char *path)
 	x->cap = INIT_BUF_SIZE;
 	x->ins = malloc(x->cap * sizeof(struct ins));
 	x->len = 0;
+	x->path = path;
 
 	asmf(x, f, es, path);
 
@@ -105,6 +106,7 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 		strip_comment(in);
 		l = strlen(in);
 
+		g.ln = e.ln;
 		if (!isdigit(ln[0]) && ln[l - 1] == ':') {
 			// We found a label. Let's add its address to the symbol
 			// table.

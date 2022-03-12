@@ -2,7 +2,7 @@
 struct err {
 	enum {
 		RE_NOERR, RE_FNOOPEN, RE_NOINS, RE_NOREG, RE_BADINT, RE_BADCOND,
-		RE_NEGATIVE_JMP,
+		RE_NEGATIVE_JMP, RE_NOLBL,
 	} type;
 
 	int ln;
@@ -13,6 +13,7 @@ struct err {
 		char *reg; /* owned. */
 		char *bint; /* owned. */
 		char *cond; /* owned. */
+		char *label; /* owned. */
 	} data;
 };
 

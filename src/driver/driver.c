@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include "../err.h"
@@ -98,22 +99,28 @@ link(struct asm_unit **units, size_t n, const struct symtab *st, struct err_set 
 	struct ins *ins;
 	long adr;
 	struct err e;
-	e.path = NULL;
+
+	e.type = RE_NOLBL;
 
 	for (size_t ui = 0; ui < n; ui++) { // Iterate over units.
 		u = units[ui];
 		ins = u->ins;
+		e.path = u->path;
 
 		for (size_t ii = 0; ii < u->len; ii++) { // Iterate over instructions.
 			if (ins[ii].type != I_CTF || !ins[ii].data.ctf.dest.label)
 				continue;
 
+			e.ln = ins[ii].ln;
+
 			adr = st_lookup(st, ins[ii].data.ctf.dest.label);
 
 			if (adr >= 0)
 				ins[ii].data.ctf.dest.adr = adr;
-			else
+			else {
+				e.data.label = strdup(ins[ii].data.ctf.dest.label);
 				err_append(es, e);
+			}
 
 			free(ins[ii].data.ctf.dest.label);
 			ins[ii].data.ctf.dest.label = NULL;

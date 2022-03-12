@@ -6,6 +6,8 @@ struct asm_unit {
 	struct ins *ins;
 	size_t cap;
 	size_t len;
+
+	const char *path;
 };
 
 /* Parse a given FILE, recording errors in the given err_set, with the given

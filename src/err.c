@@ -41,6 +41,8 @@ err_disp(const struct err *e)
 	case RE_NEGATIVE_JMP:
 		fprintf(stderr, "Given jump target was negative.");
 		break;
+	case RE_NOLBL:
+		fprintf(stderr, "Given label `%s` wasn't found in any source file.", e->data.label);
 	case RE_NOERR:
 		break;
 	}
@@ -60,6 +62,9 @@ err_free_asc(struct err *e)
 		break;
 	case RE_BADCOND:
 		free(e->data.cond);
+		break;
+	case RE_NOLBL:
+		free(e->data.label);
 		break;
 	default:
 		break;
