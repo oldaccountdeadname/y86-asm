@@ -56,6 +56,7 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 	struct gen_ins *g;
 	struct ctf_ins *c;
 	char *pad = ""; // a singe 0 byte.
+	long written = 0;
 
 	for (size_t i = 0; i < u->len; i++) {
 		x = &u->ins[i];
@@ -65,6 +66,7 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 			fwrite(&g->op, 1, 1, o);
 			fwrite(&g->reg, 1, 1, o);
 			fwrite(&g->imdte, 8, 1, o);
+			written += 10;
 			break;
 		case I_CTF:
 			c = &x->data.ctf;
@@ -73,12 +75,21 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 
 			// Pad to 10 bytes.
 			fwrite(pad, 1, 1, o);
+			written += 10;
 			break;
 		case I_DIR:
 			switch (x->data.dir.dir) {
 			case DIR_ALN:
 				break;
 			case DIR_POS:
+				if (written > x->data.dir.x)
+					break;
+
+				for (long i = written; i < x->data.dir.x; i++)
+					fwrite(pad, 1, 1, o);
+
+				written += x->data.dir.x - written;
+
 				break;
 			case DIR_QUA:
 				fwrite(&x->data.dir.x, 8, 1, o);
@@ -86,6 +97,7 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 				// Fill out the remaining 2 bytes to pad to 10.
 				fwrite(pad, 1, 1, o);
 				fwrite(pad, 1, 1, o);
+				written += 10;
 				break;
 			}
 
