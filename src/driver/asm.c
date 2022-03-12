@@ -21,6 +21,7 @@ static void asmf(struct asm_unit *, FILE *, struct err_set *, const char *);
  * passed, which is cloned and overwritten for each error. (Useful for recording
  * line numbers, file paths.) */
 static int read_ins(char *, struct ins *, struct err_set *, struct err);
+static int read_directive(char *, struct ins *, struct err_set *, struct err);
 
 static char *read_reg(char *, unsigned char *, char *, int, struct err_set *, struct err);
 static char *read_dest(char *, struct dest *, struct err_set *, struct err);
@@ -68,11 +69,27 @@ asm_unit_write(FILE *restrict o, const struct asm_unit *restrict u)
 		case I_CTF:
 			c = &x->data.ctf;
 			fwrite(&c->op, 1, 1, o);
-			// TODO: handel label destinations.
 			fwrite(&c->dest.adr, 8, 1, o);
 
 			// Pad to 10 bytes.
 			fwrite(pad, 1, 1, o);
+			break;
+		case I_DIR:
+			switch (x->data.dir.dir) {
+			case DIR_ALN:
+				break;
+			case DIR_POS:
+				break;
+			case DIR_QUA:
+				fwrite(&x->data.dir.x, 8, 1, o);
+
+				// Fill out the remaining 2 bytes to pad to 10.
+				fwrite(pad, 1, 1, o);
+				fwrite(pad, 1, 1, o);
+				break;
+			}
+
+			break;
 		}
 	}
 }
@@ -107,25 +124,30 @@ asmf(struct asm_unit *u, FILE *f, struct err_set *es, const char *path)
 		l = strlen(in);
 
 		g.ln = e.ln;
-		if (!isdigit(ln[0]) && ln[l - 1] == ':') {
+
+		if (ln[0] == '.') {
+			if (read_directive(ln + 1, &g, es, e) != 0)
+				continue;
+		} else if (!isdigit(ln[0]) && ln[l - 1] == ':') {
 			// We found a label. Let's add its address to the symbol
 			// table.
 			ln[l - 1] = '\0';
 			u->st = st_append(u->st, ln, addr);
+			continue;
 		} else {
-			if (read_ins(in, &g, es, e) == 0) {
-				if (u->len + 1 >= u->cap) {
-					u->cap *= 2;
-					u->ins = realloc(u->ins,
-						u->cap * sizeof(struct ins));
-				}
-
-				// Might as well blow up here if allocation failed.
-				u->ins[u->len++] = g;
-			}
-
 			addr += 10;
+			if (read_ins(in, &g, es, e) != 0)
+				continue;
 		}
+
+		if (u->len + 1 >= u->cap) {
+			u->cap *= 2;
+			u->ins = realloc(u->ins,
+				u->cap * sizeof(struct ins));
+		}
+
+		// Might as well blow up here if allocation failed.
+		u->ins[u->len++] = g;
 	}
 
 	if (ln) free(ln);
@@ -244,6 +266,28 @@ read_ins(char *in, struct ins *out, struct err_set *es, struct err e)
 	}
 
 	return ret;
+}
+
+static int
+read_directive(char *in, struct ins *out, struct err_set *es, struct err e)
+{
+	out->type = I_DIR;
+	out->data.dir.x = 0;
+
+	if (strncmp(in, "align", 5) == 0) {
+		out->data.dir.dir = DIR_ALN;
+		read_imdte(in + 5, &out->data.dir.x, '\0', es, e);
+		return 0;
+	} else if (strncmp(in, "pos", 3) == 0) {
+		out->data.dir.dir = DIR_POS;
+		read_imdte(in + 3, &out->data.dir.x, '\0', es, e);
+		return 0;
+	} else if (strncmp(in, "long", 4) == 0 || strncmp(in, "quad", 4) == 0) {
+		out->data.dir.dir = DIR_QUA;
+		read_imdte(in + 4, &out->data.dir.x, '\0', es, e);
+		return 0;
+	} else
+		return 1;
 }
 
 static char *

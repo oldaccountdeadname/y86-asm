@@ -21,13 +21,27 @@ struct ctf_ins {
 	struct dest dest;
 };
 
+/* A structure storing linker directives. */
+struct dir_ins {
+	long x;
+	enum {
+		/* Align the next instruction at an x-byte boundary. */
+		DIR_ALN,
+		/* Put the next instruction at byte x. */
+		DIR_POS,
+		/* Place the literal x at the next byte. */
+		DIR_QUA,
+	} dir;
+};
+
 struct ins {
 	enum {
-		I_GEN, I_CTF,
+		I_GEN, I_CTF, I_DIR,
 	} type;
 	union {
 		struct gen_ins gen;
 		struct ctf_ins ctf;
+		struct dir_ins dir;
 	} data;
 
 	size_t ln;
